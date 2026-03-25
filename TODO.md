@@ -28,6 +28,15 @@
 - [x] backend/migrations/001_initial.sql
 - [x] Rodar schema no TimescaleDB e validar hypertable
 
+### Fase 1 — Backend Core (Semana 2)
+- [x] backend/infra/config.py (pydantic-settings)
+- [x] backend/infra/database.py (SQLAlchemy engine + SessionLocal)
+- [x] backend/infra/tenant.py (contextvars para gym_id)
+- [x] backend/api/auth.py (Clerk JWT → org_id = gym_id)
+- [x] backend/api/deps.py (DI: get_db, get_current_gym_id)
+- [x] backend/api/middleware.py (TenantMiddleware)
+- [x] backend/api/main.py (FastAPI app + CORS + /health)
+
 ---
 
 ## DOING
@@ -49,12 +58,6 @@ _(nada em teste)_
 ---
 
 ## TODO
-
-### Fase 1 — Backend Core (Semana 2)
-- [ ] backend/api/config.py (pydantic-settings)
-- [ ] backend/api/database.py (SQLAlchemy engine + get_db)
-- [ ] backend/api/auth.py (Clerk JWT → org_id = gym_id)
-- [ ] backend/api/main.py (FastAPI app + CORS + middleware)
 
 ### Fase 1 — Importação CSV (Semana 2)
 - [ ] backend/importacao/parser.py (datas BR, encoding, validação)
