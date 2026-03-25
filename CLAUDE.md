@@ -25,8 +25,10 @@ O app se chama **Pulse**. SaaS B2B que prediz churn de alunos em academias. Duas
 - **Backend**: Clean Architecture flat (domain → use_cases → repositories → api)
 - **Multi-tenant**: Shared DB + RLS. `gym_id` em TODAS as tabelas. Clerk org_id = gym_id
 - **Banco**: TimescaleDB com hypertable em `checkins` (serie temporal)
-- **Tabelas principais**: `gyms`, `members`, `checkins`, `payments`, `member_features`, `churn_scores`, `actions_log`
-- **Scoring**: Sistema de pontuacao baseado em regras (`backend/use_cases/calcular_score.py`) com tiers: critico (>=60), medio (>=30), baixo (>=10), seguro (<10)
+- **Core tables**: `gyms`, `members`, `checkins`, `payments`, `member_features`, `churn_scores`, `actions_log`
+- **Billing tables**: `plans`, `subscriptions`, `invoices`, `coupons`, `coupon_usage`, `promotions`
+- **Admin tables**: `admin_users`, `admin_sessions`
+- **Scoring**: Rule-based scoring (`backend/use_cases/calculate_score.py`) with tiers: critical (>=60), medium (>=30), low (>=10), safe (<10)
 - **Jobs**: Celery Beat roda scoring diario as 3h e retreino mensal no dia 1
 - **API**: FastAPI com endpoints `/at-risk` e `/score/{member_id}`
 - **Auth**: Clerk — JWT no backend, componentes prontos no frontend. Clerk Organizations = 1 org = 1 academia (org_id = gym_id)
@@ -106,12 +108,14 @@ pulse/
 - Retreino automatico mensal (so substitui se PR-AUC melhorar >0.01)
 - Regras sempre ficam como fallback
 
-## Convencoes
+## Conventions
 
-- Idioma do codigo: nomes de variaveis e tabelas em portugues (ex: `dias_sem_treino`, `matricula_em`)
-- Datas em formato brasileiro (dd/mm/yyyy) na importacao
-- UUIDs como primary keys em todas as tabelas
-- Docker Compose para ambiente local (TimescaleDB + Redis)
+- **Language**: All code in English (tables, columns, variables, functions, classes, routes). Only user-facing strings (churn reasons, UI labels) in PT-BR.
+- Date parsing: Brazilian format (dd/mm/yyyy) on CSV import, ISO format internally
+- UUIDs as primary keys on all tables
+- Docker Compose for local dev (TimescaleDB + Redis)
+- **Billing**: Stripe for SaaS subscriptions. Upgrade = immediate + proration. Downgrade = end of cycle.
+- **Admin**: Separate JWT auth (not Clerk). Roles: superadmin > finance > support.
 
 ## Design System e UI
 
