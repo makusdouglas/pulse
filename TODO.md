@@ -37,6 +37,11 @@
 - [x] backend/api/middleware.py (TenantMiddleware)
 - [x] backend/api/main.py (FastAPI app + CORS + /health)
 
+### Fase 1 — Importação CSV (Semana 2)
+- [x] backend/use_cases/csv_parser.py (datas BR, encoding, validação)
+- [x] backend/use_cases/csv_loader.py (inserção com upsert)
+- [x] backend/api/routes/upload.py (POST /import/csv)
+
 ---
 
 ## DOING
@@ -58,11 +63,6 @@ _(nada em teste)_
 ---
 
 ## TODO
-
-### Fase 1 — Importação CSV (Semana 2)
-- [ ] backend/importacao/parser.py (datas BR, encoding, validação)
-- [ ] backend/importacao/loader.py (inserção com ON CONFLICT)
-- [ ] backend/api/routes/upload.py (POST /import/csv)
 
 ### Fase 1 — Scoring Engine (Semana 3)
 - [ ] backend/scoring/rules.py (ChurnSignals + calcular_score)
