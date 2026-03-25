@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from starlette.middleware.cors import CORSMiddleware
 
 from api.middleware import TenantMiddleware
+from api.routes.upload import router as upload_router
 from infra.config import get_settings
 
 settings = get_settings()
@@ -17,6 +18,8 @@ app.add_middleware(
 )
 
 app.add_middleware(TenantMiddleware)
+
+app.include_router(upload_router)
 
 
 @app.get("/health")
