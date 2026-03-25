@@ -23,6 +23,11 @@
 - [x] Makefile com comandos uteis
 - [x] Clean Architecture: domain/, use_cases/, repositories/, api/, infra/
 
+### Fase 1 — Banco de Dados (Semana 1)
+- [x] backend/schema.sql (DDL completo)
+- [x] backend/migrations/001_initial.sql
+- [x] Rodar schema no TimescaleDB e validar hypertable
+
 ---
 
 ## DOING
@@ -44,11 +49,6 @@ _(nada em teste)_
 ---
 
 ## TODO
-
-### Fase 1 — Banco de Dados (Semana 1)
-- [ ] backend/schema.sql (DDL completo)
-- [ ] backend/migrations/001_initial.sql
-- [ ] Rodar schema no TimescaleDB e validar hypertable
 
 ### Fase 1 — Backend Core (Semana 2)
 - [ ] backend/api/config.py (pydantic-settings)
