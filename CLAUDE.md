@@ -131,6 +131,7 @@ pulse/
 | Perfil do Aluno | `nB5gZ` (x:900, y:1338) | `QsBuB` (x:2440, y:1912) | Completo |
 | Acoes/Retencao | `KUo5r` (x:900, y:2338) | `y7Kq4` (x:2440, y:2912) | Completo |
 | Pagamentos | `nGJmb` (x:900, y:3338) | `XycjA` (x:2440, y:3912) | Completo |
+| Configuracoes | `zGH22` (x:900, y:4338) | `JuF6y` (x:2440, y:4912) | Completo |
 
 ## Comandos uteis
 
