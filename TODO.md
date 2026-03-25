@@ -1,0 +1,121 @@
+# Pulse — Board de Tarefas
+
+> Kanban: TODO → DOING → TO TEST → TESTING → DONE
+
+---
+
+## DONE
+
+### Fundação
+- [x] Documentação do projeto (CLAUDE.md, Plano Churn SaaS.md)
+- [x] Design UI completo no Pencil (design.pen) — 5 telas desktop + mobile
+- [x] Agents Claude Code (11 slash commands configurados)
+- [x] Decisões de arquitetura: monorepo backend/ + frontend/, Clerk auth, Next.js
+
+---
+
+## DOING
+
+_(nada em andamento)_
+
+---
+
+## TO TEST
+
+_(nada aguardando teste)_
+
+---
+
+## TESTING
+
+_(nada em teste)_
+
+---
+
+## TODO
+
+### Fase 1 — Infraestrutura (Semana 1)
+- [ ] Inicializar git + .gitignore
+- [ ] docker-compose.yml (db + redis + api + worker + frontend)
+- [ ] backend/Dockerfile
+- [ ] frontend/Dockerfile
+- [ ] .env.example com todas as vars
+- [ ] backend/requirements.txt
+- [ ] backend/pyproject.toml (pytest + ruff config)
+- [ ] Makefile com comandos uteis
+
+### Fase 1 — Banco de Dados (Semana 1)
+- [ ] backend/schema.sql (DDL completo)
+- [ ] backend/migrations/001_initial.sql
+- [ ] Rodar schema no TimescaleDB e validar hypertable
+
+### Fase 1 — Backend Core (Semana 2)
+- [ ] backend/api/config.py (pydantic-settings)
+- [ ] backend/api/database.py (SQLAlchemy engine + get_db)
+- [ ] backend/api/auth.py (Clerk JWT → org_id = gym_id)
+- [ ] backend/api/main.py (FastAPI app + CORS + middleware)
+
+### Fase 1 — Importação CSV (Semana 2)
+- [ ] backend/importacao/parser.py (datas BR, encoding, validação)
+- [ ] backend/importacao/loader.py (inserção com ON CONFLICT)
+- [ ] backend/api/routes/upload.py (POST /import/csv)
+
+### Fase 1 — Scoring Engine (Semana 3)
+- [ ] backend/scoring/rules.py (ChurnSignals + calcular_score)
+- [ ] backend/scoring/features.py (queries de feature extraction)
+
+### Fase 1 — API Endpoints (Semana 3-4)
+- [ ] backend/api/routes/risk.py (GET /at-risk)
+- [ ] backend/api/routes/members.py (GET /members, GET /score/{id})
+- [ ] backend/api/routes/dashboard.py (GET /dashboard/stats)
+- [ ] backend/api/schemas/ (Pydantic models)
+
+### Fase 1 — Celery Jobs (Semana 4)
+- [ ] backend/tasks/celery_app.py (config + beat schedule)
+- [ ] backend/tasks/feature_job.py (feature extraction diario)
+- [ ] backend/tasks/scoring_job.py (scoring diario 3h)
+
+### Fase 1 — Testes (Semana 5)
+- [ ] backend/tests/conftest.py (fixtures)
+- [ ] backend/tests/test_scoring.py (7 regras + boundaries + cap)
+- [ ] backend/tests/test_api.py (endpoints + auth + multi-tenant)
+- [ ] backend/tests/test_import.py (CSV parsing + validação)
+- [ ] backend/tests/test_features.py
+- [ ] Validação retroativa: scoring acerta >65% cancelamentos
+
+### Fase 1 — Frontend (Semanas 5-7)
+- [ ] frontend/ setup (Next.js + TypeScript + Tailwind + shadcn)
+- [ ] Clerk integration (@clerk/nextjs + middleware)
+- [ ] Layout: Sidebar + Header + Mobile menu
+- [ ] Tela: Dashboard (KPIs + tabela risco)
+- [ ] Tela: Alunos lista (busca + filtros + paginação)
+- [ ] Tela: Perfil do aluno (score + histórico)
+- [ ] Tela: Ações/Retenção
+- [ ] Tela: Pagamentos
+
+### Fase 1 — Security Audit (Semana 7)
+- [ ] /security audit em todas as rotas
+- [ ] Rate limiting em endpoints críticos
+- [ ] Limites de paginação e upload
+- [ ] Validação multi-tenant (IDOR check)
+
+### Fase 1 — Deploy (Semana 8)
+- [ ] Deploy API no Railway/Render
+- [ ] Deploy Worker no Railway/Render
+- [ ] Deploy Frontend no Railway/Render/Vercel
+- [ ] Postgres + Redis gerenciados
+- [ ] Clerk production keys
+- [ ] Teste e2e em produção
+
+---
+
+### Fase 2 — ML (Semanas 9-16, após gate)
+- [ ] Verificar gate criteria (6m dados, 80+ cancelamentos, 2+ academias)
+- [ ] backend/ml/dataset.py (split temporal + SMOTE)
+- [ ] backend/ml/train.py (LogReg + XGBoost)
+- [ ] backend/scoring/hybrid.py (ponte rules↔ML)
+- [ ] Shadow mode (logar ML ao lado de regras)
+- [ ] backend/tasks/retrain_job.py (retreino mensal)
+- [ ] SHAP integration (explicabilidade)
+- [ ] backend/tests/test_ml.py
+- [ ] Ativar ML se bater regras em 10+ pontos PR-AUC
