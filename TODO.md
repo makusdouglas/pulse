@@ -42,6 +42,10 @@
 - [x] backend/use_cases/csv_loader.py (inserção com upsert)
 - [x] backend/api/routes/upload.py (POST /import/csv)
 
+### Fase 1 — Scoring Engine (Semana 3)
+- [x] backend/use_cases/calculate_score.py (ChurnSignals + calculate_score — 7 regras)
+- [x] backend/use_cases/features.py (queries de feature extraction)
+
 ---
 
 ## DOING
@@ -63,10 +67,6 @@ _(nada em teste)_
 ---
 
 ## TODO
-
-### Fase 1 — Scoring Engine (Semana 3)
-- [ ] backend/scoring/rules.py (ChurnSignals + calcular_score)
-- [ ] backend/scoring/features.py (queries de feature extraction)
 
 ### Fase 1 — API Endpoints (Semana 3-4)
 - [ ] backend/api/routes/risk.py (GET /at-risk)
