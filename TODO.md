@@ -12,6 +12,17 @@
 - [x] Agents Claude Code (11 slash commands configurados)
 - [x] Decisões de arquitetura: monorepo backend/ + frontend/, Clerk auth, Next.js
 
+### Fase 1 — Infraestrutura (Semana 1)
+- [x] Inicializar git + .gitignore
+- [x] docker-compose.yml (db + redis + api + worker + frontend)
+- [x] backend/Dockerfile
+- [x] frontend/Dockerfile
+- [x] .env.example com todas as vars
+- [x] backend/requirements.txt
+- [x] backend/pyproject.toml (pytest + ruff config)
+- [x] Makefile com comandos uteis
+- [x] Clean Architecture: domain/, use_cases/, repositories/, api/, infra/
+
 ---
 
 ## DOING
@@ -33,16 +44,6 @@ _(nada em teste)_
 ---
 
 ## TODO
-
-### Fase 1 — Infraestrutura (Semana 1)
-- [ ] Inicializar git + .gitignore
-- [ ] docker-compose.yml (db + redis + api + worker + frontend)
-- [ ] backend/Dockerfile
-- [ ] frontend/Dockerfile
-- [ ] .env.example com todas as vars
-- [ ] backend/requirements.txt
-- [ ] backend/pyproject.toml (pytest + ruff config)
-- [ ] Makefile com comandos uteis
 
 ### Fase 1 — Banco de Dados (Semana 1)
 - [ ] backend/schema.sql (DDL completo)

@@ -5,6 +5,15 @@ $ARGUMENTS
 
 ## Instructions
 
+### Step 0 — Create the branch
+Before any work, set up the git branch:
+1. `git checkout homolog`
+2. `git fetch origin`
+3. `git pull origin homolog`
+4. Create a branch following conventional commits: `git checkout -b <type>/<short-description>`
+   - Use the task content to determine the type (feat, fix, refactor, chore, test, docs)
+   - Example: `feat/scoring-engine`, `chore/docker-setup`
+
 ### Step 1 — Identify the task
 Locate the task in TODO.md. If there is no exact match, ask the user which task they want to execute.
 
@@ -44,12 +53,18 @@ For each agent in the pipeline:
 
 5. **Move to the next agent** in the pipeline.
 
-### Step 4 — Update TODO.md
-After all agents in the pipeline complete successfully:
+### Step 4 — Commit changes
+After all agents complete, commit using `/git` conventions:
+1. Stage specific files (never `git add .`)
+2. Group related changes into logical commits using conventional commit format: `<type>(<scope>): <description>`
+3. Always include `Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>` in the footer
+
+### Step 5 — Update TODO.md
+After committing:
 1. Mark the task as done in TODO.md (change `- [ ]` to `- [x]`)
 2. Move the task from its current section to the DONE section
 
-### Step 5 — Final summary
+### Step 6 — Final summary
 Present a summary of the executed workflow:
 ```
 ## Workflow complete

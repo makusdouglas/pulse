@@ -22,9 +22,11 @@ O app se chama **Pulse**. SaaS B2B que prediz churn de alunos em academias. Duas
 ## Arquitetura
 
 - **Monorepo**: `backend/` (Python) + `frontend/` (Next.js) + `docker-compose.yml` na raiz
+- **Backend**: Clean Architecture flat (domain → use_cases → repositories → api)
+- **Multi-tenant**: Shared DB + RLS. `gym_id` em TODAS as tabelas. Clerk org_id = gym_id
 - **Banco**: TimescaleDB com hypertable em `checkins` (serie temporal)
 - **Tabelas principais**: `gyms`, `members`, `checkins`, `payments`, `member_features`, `churn_scores`, `actions_log`
-- **Scoring**: Sistema de pontuacao baseado em regras (`backend/scoring/rules.py`) com tiers: critico (>=60), medio (>=30), baixo (>=10), seguro (<10)
+- **Scoring**: Sistema de pontuacao baseado em regras (`backend/use_cases/calcular_score.py`) com tiers: critico (>=60), medio (>=30), baixo (>=10), seguro (<10)
 - **Jobs**: Celery Beat roda scoring diario as 3h e retreino mensal no dia 1
 - **API**: FastAPI com endpoints `/at-risk` e `/score/{member_id}`
 - **Auth**: Clerk — JWT no backend, componentes prontos no frontend. Clerk Organizations = 1 org = 1 academia (org_id = gym_id)
@@ -33,11 +35,25 @@ O app se chama **Pulse**. SaaS B2B que prediz churn de alunos em academias. Duas
 ```
 pulse/
 ├── backend/
-│   ├── api/              # FastAPI — rotas, schemas, auth, middleware
-│   ├── scoring/          # Logica de negocio do scoring
-│   ├── tasks/            # Celery — orquestracao de jobs
-│   ├── ml/               # Pipeline ML (Fase 2)
-│   ├── importacao/       # Pipeline de importacao CSV
+│   ├── domain/           # Entidades e regras de negocio puras (sem deps externas)
+│   │   ├── entities/     # Member, Gym, Checkin, Payment, ChurnScore, ChurnSignals
+│   │   └── exceptions.py
+│   ├── use_cases/        # Casos de uso (orquestram repositories)
+│   ├── repositories/     # Camada de acesso a dados
+│   │   ├── interfaces/   # ABCs (MemberRepo, CheckinRepo, ScoreRepo...)
+│   │   └── postgres/     # Implementacoes concretas com SQLAlchemy
+│   ├── api/              # FastAPI — controllers/adapters
+│   │   ├── routes/       # Rotas HTTP (finas — so chamam use_cases)
+│   │   ├── schemas/      # Pydantic request/response models
+│   │   ├── deps.py       # DI: get_db, get_current_gym_id, repos
+│   │   ├── middleware.py  # TenantMiddleware
+│   │   └── main.py
+│   ├── infra/            # Config, DB engine, Celery, tenant context
+│   │   ├── config.py     # pydantic-settings
+│   │   ├── database.py   # SQLAlchemy engine + SessionLocal
+│   │   ├── celery_app.py
+│   │   └── tenant.py     # contextvars para gym_id
+│   ├── tasks/            # Celery jobs (chamam use_cases)
 │   ├── migrations/       # SQL migrations sequenciais
 │   ├── models/           # Modelos ML serializados (.pkl)
 │   ├── tests/            # pytest
@@ -52,9 +68,25 @@ pulse/
 │   └── tailwind.config.ts
 ├── docker-compose.yml    # DB + Redis + API + Worker + Frontend
 ├── .env.example
+├── Makefile
 ├── CLAUDE.md
 └── design.pen
 ```
+
+### Regras de dependencia (Clean Architecture)
+- `domain/` → nao importa nada externo (puro Python)
+- `use_cases/` → importa `domain/` e `repositories/interfaces/`
+- `repositories/postgres/` → importa `domain/` e `repositories/interfaces/`
+- `api/` → importa `use_cases/` e `api/schemas/`
+- `infra/` → nao importa dominio
+- `tasks/` → importa `use_cases/`
+
+### Multi-tenant
+- `gym_id` em TODAS as tabelas (desnormalizado para evitar JOINs)
+- RLS (Row-Level Security) no Postgres: `USING (gym_id = current_setting('app.current_gym_id')::UUID)`
+- TenantMiddleware: extrai gym_id do JWT Clerk, seta em contextvars + session Postgres
+- Repositories sempre filtram por gym_id (dupla seguranca: codigo + RLS)
+- Celery jobs propagam tenant context via `set_tenant()` antes de executar
 
 ## Fases do projeto
 
@@ -132,6 +164,15 @@ pulse/
 | Acoes/Retencao | `KUo5r` (x:900, y:2338) | `y7Kq4` (x:2440, y:2912) | Completo |
 | Pagamentos | `nGJmb` (x:900, y:3338) | `XycjA` (x:2440, y:3912) | Completo |
 | Configuracoes | `zGH22` (x:900, y:4338) | `JuF6y` (x:2440, y:4912) | Completo |
+
+### Configuracoes — Variacoes de Tabs
+| Tab | Desktop Node | Mobile Node |
+|-----|-------------|-------------|
+| Geral (base) | `zGH22` (x:900, y:4338) | `JuF6y` (x:2440, y:4912) |
+| Assinatura/Plano | `5YzYb` (x:900, y:5638) | `sPluK` (x:2440, y:6343) |
+| Integracoes/Integ. | `CKSM5` (x:900, y:6938) | `5X4zz` (x:2930, y:6343) |
+| Importacao | `vcAl9` (x:900, y:8238) | — (incluso em Integ.) |
+| Equipe | `Gjm4R` (x:900, y:9538) | `qnpFF` (x:3420, y:6343) |
 
 ## Comandos uteis
 
