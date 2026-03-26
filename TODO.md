@@ -46,6 +46,12 @@
 - [x] backend/use_cases/calculate_score.py (ChurnSignals + calculate_score — 7 regras)
 - [x] backend/use_cases/features.py (queries de feature extraction)
 
+### Fase 1 — API Endpoints (Semana 3-4)
+- [x] backend/api/routes/risk.py (GET /at-risk)
+- [x] backend/api/routes/members.py (GET /members, GET /members/{id}/score)
+- [x] backend/api/routes/dashboard.py (GET /dashboard/stats)
+- [x] backend/api/schemas/ (Pydantic models: member, score, dashboard)
+
 ---
 
 ## DOING
@@ -67,12 +73,6 @@ _(nada em teste)_
 ---
 
 ## TODO
-
-### Fase 1 — API Endpoints (Semana 3-4)
-- [ ] backend/api/routes/risk.py (GET /at-risk)
-- [ ] backend/api/routes/members.py (GET /members, GET /score/{id})
-- [ ] backend/api/routes/dashboard.py (GET /dashboard/stats)
-- [ ] backend/api/schemas/ (Pydantic models)
 
 ### Fase 1 — Celery Jobs (Semana 4)
 - [ ] backend/tasks/celery_app.py (config + beat schedule)
