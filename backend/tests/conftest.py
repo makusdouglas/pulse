@@ -16,6 +16,57 @@ sys.modules.setdefault("psycopg2", _psycopg2_mock)
 sys.modules.setdefault("psycopg2.extensions", _psycopg2_mock.extensions)
 sys.modules.setdefault("psycopg2.extras", MagicMock())
 
+# Mock celery before any import of tasks.celery_app triggers broker connection.
+
+
+class _FakeCrontab:
+    """Minimal crontab replacement that stores hour/minute as sets."""
+
+    def __init__(self, hour=0, minute=0):
+        self.hour = {hour} if isinstance(hour, int) else set(hour)
+        self.minute = {minute} if isinstance(minute, int) else set(minute)
+
+
+class _FakeCeleryConf:
+    """Stores Celery config as real attributes."""
+
+    def __init__(self):
+        self.beat_schedule = {}
+        self.broker_url = ""
+        self.task_serializer = "json"
+        self.timezone = "UTC"
+
+    def update(self, **kwargs):
+        for k, v in kwargs.items():
+            setattr(self, k, v)
+
+
+class _FakeCelery:
+    """Minimal Celery replacement — task() is a pass-through decorator."""
+
+    def __init__(self, name="", broker="", backend=""):
+        self.conf = _FakeCeleryConf()
+        self.conf.broker_url = broker
+
+    def task(self, *args, **kwargs):
+        """Return the decorated function unchanged."""
+        def decorator(fn):
+            return fn
+        return decorator
+
+    def autodiscover_tasks(self, packages):
+        pass
+
+
+_celery_module = MagicMock()
+_celery_module.Celery = _FakeCelery
+
+_celery_schedules = MagicMock()
+_celery_schedules.crontab = _FakeCrontab
+
+sys.modules.setdefault("celery", _celery_module)
+sys.modules.setdefault("celery.schedules", _celery_schedules)
+
 
 @pytest.fixture
 def gym_id():
