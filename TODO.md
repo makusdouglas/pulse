@@ -52,6 +52,11 @@
 - [x] backend/api/routes/dashboard.py (GET /dashboard/stats)
 - [x] backend/api/schemas/ (Pydantic models: member, score, dashboard)
 
+### Fase 1 — Celery Jobs (Semana 4)
+- [x] backend/tasks/celery_app.py (config + beat schedule)
+- [x] backend/tasks/feature_job.py (feature extraction diario)
+- [x] backend/tasks/scoring_job.py (scoring diario 3h)
+
 ---
 
 ## DOING
@@ -73,11 +78,6 @@ _(nada em teste)_
 ---
 
 ## TODO
-
-### Fase 1 — Celery Jobs (Semana 4)
-- [ ] backend/tasks/celery_app.py (config + beat schedule)
-- [ ] backend/tasks/feature_job.py (feature extraction diario)
-- [ ] backend/tasks/scoring_job.py (scoring diario 3h)
 
 ### Fase 1 — Testes (Semana 5)
 - [ ] backend/tests/conftest.py (fixtures)
