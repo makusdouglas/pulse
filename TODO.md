@@ -57,6 +57,14 @@
 - [x] backend/tasks/feature_job.py (feature extraction diario)
 - [x] backend/tasks/scoring_job.py (scoring diario 3h)
 
+### Fase 1 — Testes (Semana 5)
+- [x] backend/tests/conftest.py (fixtures)
+- [x] backend/tests/test_scoring.py (7 regras + boundaries + cap)
+- [x] backend/tests/test_api.py (endpoints + auth + multi-tenant)
+- [x] backend/tests/test_import.py (CSV parsing + validação)
+- [x] backend/tests/test_features.py
+- [x] Validação retroativa: scoring acerta >65% cancelamentos (stubs — requer dados reais)
+
 ---
 
 ## DOING
@@ -78,14 +86,6 @@ _(nada em teste)_
 ---
 
 ## TODO
-
-### Fase 1 — Testes (Semana 5)
-- [ ] backend/tests/conftest.py (fixtures)
-- [ ] backend/tests/test_scoring.py (7 regras + boundaries + cap)
-- [ ] backend/tests/test_api.py (endpoints + auth + multi-tenant)
-- [ ] backend/tests/test_import.py (CSV parsing + validação)
-- [ ] backend/tests/test_features.py
-- [ ] Validação retroativa: scoring acerta >65% cancelamentos
 
 ### Fase 1 — Frontend (Semanas 5-7)
 - [ ] frontend/ setup (Next.js + TypeScript + Tailwind + shadcn)
