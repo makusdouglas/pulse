@@ -59,29 +59,62 @@ After all agents complete, commit using `/git` conventions:
 2. Group related changes into logical commits using conventional commit format: `<type>(<scope>): <description>`
 3. Always include `Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>` in the footer
 
-### Step 5 — Update TODO.md
-After committing:
+### Step 5 — Code Review (before PR)
+After committing, run `/code-reviewer` to analyze the changes:
+
+1. **Call `/code-reviewer`** with no arguments (it will diff against `homolog` automatically)
+2. **Present the review findings** to the user in a clear summary:
+   - List all 🔴 Critical, 🟡 Moderate, and 🟢 Suggestion items
+   - For each item, show the file, line, problem, and suggested fix
+3. **Ask the user which changes to apply:**
+   ```
+   The code reviewer found the following items. Which ones do you want me to fix?
+
+   🔴 1. [description] — file:line
+   🟡 2. [description] — file:line
+   🟢 3. [description] — file:line
+
+   Reply with the numbers to fix (e.g., "1, 2") or "none" to skip.
+   ```
+4. **Apply selected fixes**, then re-run tests to confirm nothing broke.
+5. **If fixes were applied**, create a new commit: `refactor(<scope>): apply code review fixes`
+
+**IMPORTANT:** Do NOT proceed to Step 6 (PR creation) until the user has responded and all selected fixes are applied.
+
+### Step 6 — Update TODO.md
+After the code review cycle:
 1. Mark the task as done in TODO.md (change `- [ ]` to `- [x]`)
 2. Move the task from its current section to the DONE section
 
-### Step 6 — Final summary
+### Step 7 — Create PR
+After TODO.md is updated:
+1. Push the branch: `git push -u origin <branch-name>`
+2. Create the PR targeting `homolog` using `gh pr create`
+3. Include the code review verdict in the PR description
+
+### Step 8 — Final summary
 Present a summary of the executed workflow:
 ```
 ## Workflow complete
 
 Task: [task description]
-Pipeline: /db → /test → /arch
+Pipeline: /db → /test → /arch → /code-reviewer
 
 | Agent | Status | Summary |
 |-------|--------|---------|
 | /db | ✓ | Created schema.sql |
 | /test | ✓ | 12 tests passing |
 | /arch | ✓ | No issues found |
+| /code-reviewer | ✓ | Verdict: ✅ CLEAN |
+
+PR: owner/repo#123
 ```
 
 ## Rules
 - NEVER skip the `/test` agent when it's in the pipeline — tests are mandatory
 - NEVER skip the `/arch` agent — architecture review is mandatory
+- NEVER skip the `/code-reviewer` step — always review before creating a PR
+- NEVER create the PR before the user reviews and approves the code review findings
 - If the task depends on another task that hasn't been done yet (e.g., API needs the schema), inform the user and suggest executing the dependency first
 - If the user passes more than one task, execute each as a separate workflow in sequence
 - Read CLAUDE.md and TODO.md at the start for full context
