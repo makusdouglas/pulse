@@ -19,6 +19,9 @@ backend/models/*.json
 .env
 .env.local
 .env.production
+.env.backend
+.env.frontend
+.env.shared
 
 # Node
 node_modules/
@@ -44,6 +47,16 @@ pgdata/
 htmlcov/
 .coverage
 coverage.xml
+
+# Celery
+backend/celerybeat-schedule
+
+# Seeds with real data
+scripts/seeds-admin.json
+scripts/seeds-organizations.json
+
+# TypeScript build cache
+frontend/tsconfig.tsbuildinfo
 
 # Logs
 *.log
