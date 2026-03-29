@@ -107,6 +107,15 @@ _(nada em teste)_
 - [ ] PR7: Auth + Onboarding (login split layout + recuperar senha 4 steps + onboarding 3 steps)
 - [ ] PR8: Admin Panel (auth JWT separada + 6 telas: dashboard, academias, assinaturas, cupons, usuarios)
 
+### Fase 1 — Clerk Webhooks (sync Clerk ↔ DB)
+- [ ] Adicionar svix ao requirements.txt + CLERK_WEBHOOK_SECRET ao config.py e .env.example
+- [ ] Criar rota POST /webhooks/clerk (validação Svix, fora do TenantMiddleware)
+- [ ] Handler: organization.created → criar gym no banco (clerk_org_id = org.id)
+- [ ] Handler: organization.updated → atualizar gym (name, etc.)
+- [ ] Handler: organization.deleted → soft-delete gym (is_active/deleted_at)
+- [ ] Testes: test_webhooks.py (assinatura inválida, created, updated, deleted, evento desconhecido)
+- [ ] Atualizar onboarding frontend: step-1 cria org via Clerk SDK, step-3 envia convites
+
 ### Fase 1 — Backend Routes (novas, para suportar frontend)
 - [ ] GET /payments (lista paginada)
 - [ ] GET /actions + POST /actions (CRUD ações de retenção)
