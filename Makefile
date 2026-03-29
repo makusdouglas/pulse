@@ -2,6 +2,10 @@
 
 # Subir tudo (Docker)
 up:
+	docker compose up
+
+# Subir tudo (Docker) no mode detached
+up-d:
 	docker compose up -d
 
 # Derrubar tudo
@@ -36,14 +40,18 @@ lint:
 lint-fix:
 	cd backend && ruff check --fix .
 
-# Rodar migration inicial
+# Rodar migrations (Alembic)
 migrate:
-	docker compose exec db psql -U churn -d churndb -f /docker-entrypoint-initdb.d/001_initial.sql
+	docker compose exec api alembic upgrade head
 
 # Logs de um servico (ex: make logs s=api)
 logs:
 	docker compose logs -f $(s)
 
-# Rebuild containers
+# Rebuild containers (limpa imagens antigas automaticamente)
 rebuild:
-	docker compose up -d --build
+	docker compose up -d --build --remove-orphans && docker image prune -f
+
+# Limpar imagens dangling manualmente
+prune:
+	docker image prune -f

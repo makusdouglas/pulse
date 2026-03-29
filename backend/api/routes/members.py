@@ -8,7 +8,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
-from api.deps import get_current_gym_id, get_db
+from api.deps import get_db, get_gym_uuid
 from api.schemas.member import (
     MemberListResponse,
     MemberResponse,
@@ -29,7 +29,7 @@ def list_members(
     search: str | None = Query(None, max_length=200, pattern=r"^[a-zA-Z0-9@.\s\-àáâãéêíóôõúüçÀÁÂÃÉÊÍÓÔÕÚÜÇ]+$"),
     member_status: str | None = Query(None, alias="status", pattern="^(active|inactive|cancelled)$"),
     db: Session = Depends(get_db),
-    gym_id: str = Depends(get_current_gym_id),
+    gym_id: str = Depends(get_gym_uuid),
 ) -> MemberListResponse:
     """List members for the gym with optional search and status filter."""
     conditions = ["m.gym_id = :gym_id"]
@@ -86,7 +86,7 @@ def list_members(
 def get_member_score(
     member_id: str,
     db: Session = Depends(get_db),
-    gym_id: str = Depends(get_current_gym_id),
+    gym_id: str = Depends(get_gym_uuid),
 ) -> MemberScoreResponse:
     """Score a member on demand and return full breakdown."""
     member_row = db.execute(

@@ -7,7 +7,7 @@ from starlette.responses import Response
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
-from api.deps import get_current_gym_id, get_db
+from api.deps import get_db, get_gym_uuid
 from api.schemas.notification import NotificationListResponse, NotificationResponse
 
 router = APIRouter(prefix="/notifications", tags=["notifications"])
@@ -20,7 +20,7 @@ def list_notifications(
     page: int = Query(1, ge=1),
     page_size: int = Query(20, ge=1, le=MAX_PAGE_SIZE),
     db: Session = Depends(get_db),
-    gym_id: str = Depends(get_current_gym_id),
+    gym_id: str = Depends(get_gym_uuid),
 ) -> NotificationListResponse:
     """List notifications for the current gym, newest first."""
     params: dict = {"gym_id": gym_id}
@@ -79,7 +79,7 @@ def list_notifications(
 @router.put("/read-all", status_code=status.HTTP_204_NO_CONTENT, response_class=Response)
 def mark_all_notifications_read(
     db: Session = Depends(get_db),
-    gym_id: str = Depends(get_current_gym_id),
+    gym_id: str = Depends(get_gym_uuid),
 ) -> Response:
     """Mark all unread notifications as read for the current gym."""
     db.execute(
@@ -95,7 +95,7 @@ def mark_all_notifications_read(
 def mark_notification_read(
     notification_id: str,
     db: Session = Depends(get_db),
-    gym_id: str = Depends(get_current_gym_id),
+    gym_id: str = Depends(get_gym_uuid),
 ) -> Response:
     """Mark a notification as read. Only succeeds if it belongs to this gym."""
     result = db.execute(

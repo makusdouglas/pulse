@@ -6,7 +6,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
-from api.deps import get_current_gym_id, get_db
+from api.deps import get_db, get_gym_uuid
 from api.schemas.action import ActionListResponse, ActionResponse, CreateActionRequest
 
 router = APIRouter(prefix="/actions", tags=["actions"])
@@ -30,7 +30,7 @@ def list_actions(
     page: int = Query(1, ge=1),
     page_size: int = Query(20, ge=1, le=MAX_PAGE_SIZE),
     db: Session = Depends(get_db),
-    gym_id: str = Depends(get_current_gym_id),
+    gym_id: str = Depends(get_gym_uuid),
 ) -> ActionListResponse:
     """List retention actions with optional member filter."""
     conditions = ["a.gym_id = :gym_id"]
@@ -90,7 +90,7 @@ def list_actions(
 def create_action(
     body: CreateActionRequest,
     db: Session = Depends(get_db),
-    gym_id: str = Depends(get_current_gym_id),
+    gym_id: str = Depends(get_gym_uuid),
 ) -> ActionResponse:
     """Create a new retention action for a member."""
     member = db.execute(

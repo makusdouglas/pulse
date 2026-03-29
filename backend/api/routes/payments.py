@@ -6,7 +6,7 @@ from fastapi import APIRouter, Depends, Query
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
-from api.deps import get_current_gym_id, get_db
+from api.deps import get_db, get_gym_uuid
 from api.schemas.payment import PaymentListResponse, PaymentResponse
 
 router = APIRouter(prefix="/payments", tags=["payments"])
@@ -21,7 +21,7 @@ def list_payments(
     page: int = Query(1, ge=1),
     page_size: int = Query(20, ge=1, le=MAX_PAGE_SIZE),
     db: Session = Depends(get_db),
-    gym_id: str = Depends(get_current_gym_id),
+    gym_id: str = Depends(get_gym_uuid),
 ) -> PaymentListResponse:
     """List payments with optional filters."""
     conditions = ["p.gym_id = :gym_id"]

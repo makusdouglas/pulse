@@ -6,9 +6,11 @@ from sqlalchemy.orm import Session
 
 from api.auth import decode_clerk_jwt, extract_gym_id
 from infra.database import SessionLocal
+from infra.tenant import get_tenant, set_tenant
 
 
 def get_current_gym_id(authorization: str | None = Header(None)) -> str:
+    """Extract Clerk org_id from JWT. Returns the raw Clerk string."""
     if not authorization or not authorization.startswith("Bearer "):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -20,12 +22,35 @@ def get_current_gym_id(authorization: str | None = Header(None)) -> str:
     return extract_gym_id(payload)
 
 
+def _resolve_gym_id(db: Session, clerk_org_id: str) -> str:
+    """Resolve Clerk org_id → internal UUID. Auto-provisions gym if not found."""
+    row = db.execute(
+        text("SELECT id::text AS id FROM gyms WHERE clerk_org_id = :org_id"),
+        {"org_id": clerk_org_id},
+    ).fetchone()
+    if row:
+        return row.id
+
+    # Auto-provision gym for new Clerk org (early stage)
+    new_row = db.execute(
+        text(
+            "INSERT INTO gyms (clerk_org_id, name, slug) "
+            "VALUES (:org_id, :name, :slug) "
+            "RETURNING id::text AS id"
+        ),
+        {"org_id": clerk_org_id, "name": "My Gym", "slug": clerk_org_id},
+    ).fetchone()
+    return new_row.id
+
+
 def get_db(
-    gym_id: str = Depends(get_current_gym_id),
+    clerk_org_id: str = Depends(get_current_gym_id),
 ) -> Generator[Session, None, None]:
     db = SessionLocal()
     try:
-        db.execute(text("SET LOCAL app.current_gym_id = :gym_id"), {"gym_id": gym_id})
+        gym_uuid = _resolve_gym_id(db, clerk_org_id)
+        set_tenant(gym_uuid)
+        db.execute(text("SET LOCAL app.current_gym_id = :gym_id"), {"gym_id": gym_uuid})
         yield db
         db.commit()
     except Exception:
@@ -33,3 +58,8 @@ def get_db(
         raise
     finally:
         db.close()
+
+
+def get_gym_uuid() -> str:
+    """Return the resolved UUID gym_id from tenant context (set by get_db)."""
+    return get_tenant()
