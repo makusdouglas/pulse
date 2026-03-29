@@ -6,6 +6,8 @@ from datetime import date
 
 from pydantic import BaseModel, Field
 
+from api.schemas.pagination import PaginatedResponse
+
 
 class ScoreResponse(BaseModel):
     member_id: str
@@ -23,9 +25,6 @@ class TierCounts(BaseModel):
     safe: int = 0
 
 
-class AtRiskResponse(BaseModel):
+class AtRiskResponse(PaginatedResponse):
     members: list[ScoreResponse]
-    total: int
-    page: int
-    page_size: int
     tier_counts: TierCounts

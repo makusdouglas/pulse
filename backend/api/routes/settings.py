@@ -17,6 +17,8 @@ FROM gyms
 WHERE clerk_org_id = :gym_id
 """)
 
+_ALLOWED_FIELDS = {"name", "email", "phone", "timezone"}
+
 
 @router.get("/settings", response_model=GymSettingsResponse)
 def get_gym_settings(
@@ -49,7 +51,6 @@ def update_gym_settings(
     gym_id: str = Depends(get_current_gym_id),
 ) -> GymSettingsResponse:
     """Update gym profile settings. Only provided fields are updated."""
-    _ALLOWED_FIELDS = {"name", "email", "phone", "timezone"}
     updates = {k: v for k, v in body.model_dump(exclude_unset=True).items() if k in _ALLOWED_FIELDS}
 
     if not updates:

@@ -1,10 +1,24 @@
 """Tests for new API endpoints — payments, actions, settings, notifications."""
 
 from datetime import date, datetime
+from decimal import Decimal
 from types import SimpleNamespace
 from unittest.mock import MagicMock
 
 import pytest
+
+# ---------------------------------------------------------------------------
+# UUID constants for mock data
+# ---------------------------------------------------------------------------
+MEM_1 = "00000000-0000-4000-8000-000000000001"
+MEM_2 = "00000000-0000-4000-8000-000000000002"
+PAY_1 = "00000000-0000-4000-8000-000000000010"
+PAY_2 = "00000000-0000-4000-8000-000000000011"
+ACT_1 = "00000000-0000-4000-8000-000000000020"
+ACT_NEW = "00000000-0000-4000-8000-000000000021"
+GYM_1 = "00000000-0000-4000-8000-000000000030"
+NOTIF_1 = "00000000-0000-4000-8000-000000000040"
+NOTIF_2 = "00000000-0000-4000-8000-000000000041"
 
 
 # ---------------------------------------------------------------------------
@@ -29,10 +43,10 @@ def _setup_db_responses(mock_session, calls):
 
 def _payment_row(**overrides):
     defaults = {
-        "id": "pay-1111",
-        "member_id": "mem-1111",
+        "id": PAY_1,
+        "member_id": MEM_1,
         "member_name": "Joao Silva",
-        "amount": 149.90,
+        "amount": Decimal("149.90"),
         "due_date": date(2026, 3, 15),
         "paid_at": date(2026, 3, 14),
         "status": "paid",
@@ -43,8 +57,8 @@ def _payment_row(**overrides):
 
 def _action_row(**overrides):
     defaults = {
-        "id": "act-1111",
-        "member_id": "mem-1111",
+        "id": ACT_1,
+        "member_id": MEM_1,
         "member_name": "Joao Silva",
         "action_type": "retention_call",
         "channel": "whatsapp",
@@ -58,7 +72,7 @@ def _action_row(**overrides):
 
 def _settings_row(**overrides):
     defaults = {
-        "id": "gym-1111",
+        "id": GYM_1,
         "name": "Academia Pulse",
         "slug": "academia-pulse",
         "email": "contato@pulse.com",
@@ -71,12 +85,12 @@ def _settings_row(**overrides):
 
 def _notification_row(**overrides):
     defaults = {
-        "id": "notif-1111",
+        "id": NOTIF_1,
         "type": "churn_alert",
         "title": "Aluno atingiu score critico",
         "description": "Ana Silva atingiu score 82",
-        "read": False,
-        "member_id": "mem-1111",
+        "is_read": False,
+        "member_id": MEM_1,
         "created_at": datetime(2026, 3, 25, 10, 0),
     }
     defaults.update(overrides)
@@ -90,7 +104,7 @@ class TestListPayments:
     def test_returns_paginated_payments(self, client, auth_headers, mock_session_local):
         _setup_db_responses(mock_session_local, [
             {"scalar": 2},
-            {"fetchall": [_payment_row(), _payment_row(id="pay-2222", member_name="Maria")]},
+            {"fetchall": [_payment_row(), _payment_row(id=PAY_2, member_name="Maria")]},
         ])
 
         response = client.get("/payments", headers=auth_headers)
@@ -117,7 +131,7 @@ class TestListPayments:
             {"fetchall": [_payment_row()]},
         ])
 
-        response = client.get("/payments?member_id=mem-1111", headers=auth_headers)
+        response = client.get(f"/payments?member_id={MEM_1}", headers=auth_headers)
         assert response.status_code == 200
 
     def test_invalid_status_rejected(self, client, auth_headers):
@@ -176,7 +190,7 @@ class TestListActions:
             {"fetchall": [_action_row()]},
         ])
 
-        response = client.get("/actions?member_id=mem-1111", headers=auth_headers)
+        response = client.get(f"/actions?member_id={MEM_1}", headers=auth_headers)
         assert response.status_code == 200
 
     def test_empty_result(self, client, auth_headers, mock_session_local):
@@ -195,20 +209,19 @@ class TestListActions:
 class TestCreateAction:
     def test_creates_action_successfully(self, client, auth_headers, mock_session_local):
         _setup_db_responses(mock_session_local, [
-            {"fetchone": SimpleNamespace()},  # member exists check
-            {"fetchone": SimpleNamespace(id="act-new", sent_at=datetime(2026, 3, 25, 10, 0))},  # INSERT RETURNING
-            {"scalar": "Joao Silva"},  # member name
+            {"fetchone": SimpleNamespace(name="Joao Silva")},  # member check + name
+            {"fetchone": SimpleNamespace(id=ACT_NEW, sent_at=datetime(2026, 3, 25, 10, 0))},  # INSERT RETURNING
         ])
 
         response = client.post("/actions", headers=auth_headers, json={
-            "member_id": "mem-1111",
+            "member_id": MEM_1,
             "action_type": "retention_call",
             "channel": "whatsapp",
             "message": "Oi, sentimos sua falta!",
         })
         assert response.status_code == 201
         body = response.json()
-        assert body["id"] == "act-new"
+        assert body["id"] == ACT_NEW
         assert body["channel"] == "whatsapp"
 
     def test_404_member_not_in_gym(self, client, auth_headers, mock_session_local):
@@ -217,7 +230,7 @@ class TestCreateAction:
         ])
 
         response = client.post("/actions", headers=auth_headers, json={
-            "member_id": "nonexistent",
+            "member_id": MEM_2,
             "action_type": "call",
             "channel": "phone",
             "message": "Test message",
@@ -226,7 +239,7 @@ class TestCreateAction:
 
     def test_invalid_channel_rejected(self, client, auth_headers):
         response = client.post("/actions", headers=auth_headers, json={
-            "member_id": "mem-1111",
+            "member_id": MEM_1,
             "action_type": "call",
             "channel": "telegram",
             "message": "Test",
@@ -235,7 +248,7 @@ class TestCreateAction:
 
     def test_empty_message_rejected(self, client, auth_headers):
         response = client.post("/actions", headers=auth_headers, json={
-            "member_id": "mem-1111",
+            "member_id": MEM_1,
             "action_type": "call",
             "channel": "whatsapp",
             "message": "",
@@ -300,16 +313,34 @@ class TestUpdateGymSettings:
         response = client.put("/gym/settings", headers=auth_headers, json={})
         assert response.status_code == 400
 
+    def test_null_name_rejected(self, client, auth_headers):
+        response = client.put("/gym/settings", headers=auth_headers, json={
+            "name": None,
+        })
+        assert response.status_code == 422
+
+    def test_null_timezone_rejected(self, client, auth_headers):
+        response = client.put("/gym/settings", headers=auth_headers, json={
+            "timezone": None,
+        })
+        assert response.status_code == 422
+
+    def test_invalid_timezone_rejected(self, client, auth_headers):
+        response = client.put("/gym/settings", headers=auth_headers, json={
+            "timezone": "Mars/Olympus",
+        })
+        assert response.status_code == 422
+
 
 # ===================================================================
-# GET /notifications + PUT /notifications/{id}/read
+# GET /notifications + PUT /notifications/read-all + PUT /notifications/{id}/read
 # ===================================================================
 class TestListNotifications:
     def test_returns_notifications(self, client, auth_headers, mock_session_local):
         _setup_db_responses(mock_session_local, [
             {"scalar": 3},  # total
             {"scalar": 2},  # unread_count
-            {"fetchall": [_notification_row(), _notification_row(id="notif-2222", read=True)]},
+            {"fetchall": [_notification_row(), _notification_row(id=NOTIF_2, is_read=True)]},
         ])
 
         response = client.get("/notifications", headers=auth_headers)
@@ -347,13 +378,31 @@ class TestListNotifications:
         assert body["page_size"] == 5
 
 
+class TestMarkAllNotificationsRead:
+    def test_marks_all_as_read(self, client, auth_headers, mock_session_local):
+        _setup_db_responses(mock_session_local, [
+            {"rowcount": 5},
+        ])
+
+        response = client.put("/notifications/read-all", headers=auth_headers)
+        assert response.status_code == 204
+
+    def test_no_unread_is_noop(self, client, auth_headers, mock_session_local):
+        _setup_db_responses(mock_session_local, [
+            {"rowcount": 0},
+        ])
+
+        response = client.put("/notifications/read-all", headers=auth_headers)
+        assert response.status_code == 204
+
+
 class TestMarkNotificationRead:
     def test_marks_as_read(self, client, auth_headers, mock_session_local):
         _setup_db_responses(mock_session_local, [
             {"rowcount": 1},  # UPDATE succeeded
         ])
 
-        response = client.put("/notifications/notif-1111/read", headers=auth_headers)
+        response = client.put(f"/notifications/{NOTIF_1}/read", headers=auth_headers)
         assert response.status_code == 204
 
     def test_404_not_found(self, client, auth_headers, mock_session_local):
@@ -362,7 +411,7 @@ class TestMarkNotificationRead:
             {"fetchone": None},  # doesn't exist
         ])
 
-        response = client.put("/notifications/nonexistent/read", headers=auth_headers)
+        response = client.put(f"/notifications/{NOTIF_2}/read", headers=auth_headers)
         assert response.status_code == 404
 
     def test_already_read_is_idempotent(self, client, auth_headers, mock_session_local):
@@ -371,5 +420,5 @@ class TestMarkNotificationRead:
             {"fetchone": SimpleNamespace()},  # but exists
         ])
 
-        response = client.put("/notifications/notif-1111/read", headers=auth_headers)
+        response = client.put(f"/notifications/{NOTIF_1}/read", headers=auth_headers)
         assert response.status_code == 204

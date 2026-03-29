@@ -9,12 +9,12 @@ CREATE TABLE notifications (
                     CHECK (type IN ('churn_alert', 'action_result', 'payment_alert', 'system')),
     title       VARCHAR(255) NOT NULL,
     description TEXT,
-    read        BOOLEAN NOT NULL DEFAULT false,
+    is_read        BOOLEAN NOT NULL DEFAULT false,
     created_at  TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
 CREATE INDEX idx_notifications_gym ON notifications(gym_id, created_at DESC);
-CREATE INDEX idx_notifications_gym_unread ON notifications(gym_id, read) WHERE read = false;
+CREATE INDEX idx_notifications_gym_unis_read ON notifications(gym_id, is_read) WHERE is_read = false;
 
 -- Row-Level Security
 ALTER TABLE notifications ENABLE ROW LEVEL SECURITY;

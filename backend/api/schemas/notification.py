@@ -6,20 +6,19 @@ from datetime import datetime
 
 from pydantic import BaseModel
 
+from api.schemas.pagination import PaginatedResponse
+
 
 class NotificationResponse(BaseModel):
     id: str
     type: str
     title: str
     description: str | None
-    read: bool
+    is_read: bool
     member_id: str | None
     created_at: datetime
 
 
-class NotificationListResponse(BaseModel):
+class NotificationListResponse(PaginatedResponse):
     notifications: list[NotificationResponse]
-    total: int
-    page: int
-    page_size: int
     unread_count: int

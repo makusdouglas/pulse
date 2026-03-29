@@ -1,4 +1,4 @@
-"""Notification endpoints — GET /notifications + PUT /notifications/{id}/read."""
+"""Notification endpoints — GET /notifications + PUT /notifications/read-all + PUT /notifications/{id}/read."""
 
 from __future__ import annotations
 
@@ -32,7 +32,7 @@ def list_notifications(
     unread_count = db.execute(
         text(
             "SELECT COUNT(*) FROM notifications "
-            "WHERE gym_id = :gym_id AND read = false"
+            "WHERE gym_id = :gym_id AND is_read = false"
         ),
         params,
     ).scalar() or 0
@@ -43,7 +43,7 @@ def list_notifications(
 
     rows = db.execute(
         text(
-            "SELECT id::text, type, title, description, read, "
+            "SELECT id::text, type, title, description, is_read, "
             "member_id::text, created_at "
             "FROM notifications "
             "WHERE gym_id = :gym_id "
@@ -59,7 +59,7 @@ def list_notifications(
             type=r.type,
             title=r.title,
             description=r.description,
-            read=r.read,
+            is_read=r.is_read,
             member_id=r.member_id,
             created_at=r.created_at,
         )
@@ -75,6 +75,21 @@ def list_notifications(
     )
 
 
+@router.put("/read-all", status_code=status.HTTP_204_NO_CONTENT)
+def mark_all_notifications_read(
+    db: Session = Depends(get_db),
+    gym_id: str = Depends(get_current_gym_id),
+) -> None:
+    """Mark all unread notifications as read for the current gym."""
+    db.execute(
+        text(
+            "UPDATE notifications SET is_read = true "
+            "WHERE gym_id = :gym_id AND is_read = false"
+        ),
+        {"gym_id": gym_id},
+    )
+
+
 @router.put("/{notification_id}/read", status_code=status.HTTP_204_NO_CONTENT)
 def mark_notification_read(
     notification_id: str,
@@ -84,14 +99,13 @@ def mark_notification_read(
     """Mark a notification as read. Only succeeds if it belongs to this gym."""
     result = db.execute(
         text(
-            "UPDATE notifications SET read = true "
-            "WHERE id = :id AND gym_id = :gym_id AND read = false"
+            "UPDATE notifications SET is_read = true "
+            "WHERE id = :id AND gym_id = :gym_id AND is_read = false"
         ),
         {"id": notification_id, "gym_id": gym_id},
     )
 
     if result.rowcount == 0:
-        # Check if it exists at all (vs already read vs wrong gym)
         exists = db.execute(
             text("SELECT 1 FROM notifications WHERE id = :id AND gym_id = :gym_id"),
             {"id": notification_id, "gym_id": gym_id},

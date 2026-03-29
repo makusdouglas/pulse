@@ -6,10 +6,12 @@ from datetime import datetime
 
 from pydantic import BaseModel, Field
 
+from api.schemas.pagination import PaginatedResponse
+
 
 class CreateActionRequest(BaseModel):
     member_id: str
-    action_type: str = Field(..., max_length=50)
+    action_type: str = Field(..., max_length=50, pattern=r"^[a-z][a-z0-9_]{0,49}$")
     channel: str = Field(
         default="whatsapp",
         pattern="^(whatsapp|email|phone|in_person|other)$",
@@ -28,8 +30,5 @@ class ActionResponse(BaseModel):
     result: str | None
 
 
-class ActionListResponse(BaseModel):
+class ActionListResponse(PaginatedResponse):
     actions: list[ActionResponse]
-    total: int
-    page: int
-    page_size: int

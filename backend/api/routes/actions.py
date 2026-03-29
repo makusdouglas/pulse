@@ -13,8 +13,8 @@ router = APIRouter(prefix="/actions", tags=["actions"])
 
 MAX_PAGE_SIZE = 100
 
-_MEMBER_EXISTS_SQL = text(
-    "SELECT 1 FROM members WHERE id = :member_id AND gym_id = :gym_id"
+_MEMBER_CHECK_SQL = text(
+    "SELECT name FROM members WHERE id = :member_id AND gym_id = :gym_id"
 )
 
 _INSERT_ACTION_SQL = text("""
@@ -38,7 +38,7 @@ def list_actions(
 
     if member_id:
         conditions.append("a.member_id = :member_id")
-        params["member_id"] = member_id
+        params["member_id"] = str(member_id)
 
     where = " AND ".join(conditions)
 
@@ -93,9 +93,8 @@ def create_action(
     gym_id: str = Depends(get_current_gym_id),
 ) -> ActionResponse:
     """Create a new retention action for a member."""
-    # Validate member belongs to this gym
     member = db.execute(
-        _MEMBER_EXISTS_SQL,
+        _MEMBER_CHECK_SQL,
         {"member_id": body.member_id, "gym_id": gym_id},
     ).fetchone()
 
@@ -116,16 +115,10 @@ def create_action(
         },
     ).fetchone()
 
-    # Fetch member name for response
-    member_name = db.execute(
-        text("SELECT name FROM members WHERE id = :member_id AND gym_id = :gym_id"),
-        {"member_id": body.member_id, "gym_id": gym_id},
-    ).scalar()
-
     return ActionResponse(
         id=row.id,
         member_id=body.member_id,
-        member_name=member_name,
+        member_name=member.name,
         action_type=body.action_type,
         channel=body.channel,
         message=body.message,

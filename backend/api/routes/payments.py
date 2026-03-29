@@ -17,7 +17,7 @@ MAX_PAGE_SIZE = 100
 @router.get("", response_model=PaymentListResponse)
 def list_payments(
     member_id: str | None = Query(None),
-    status: str | None = Query(None, pattern="^(pending|paid|overdue|cancelled)$"),
+    payment_status: str | None = Query(None, alias="status", pattern="^(pending|paid|overdue|cancelled)$"),
     page: int = Query(1, ge=1),
     page_size: int = Query(20, ge=1, le=MAX_PAGE_SIZE),
     db: Session = Depends(get_db),
@@ -29,11 +29,11 @@ def list_payments(
 
     if member_id:
         conditions.append("p.member_id = :member_id")
-        params["member_id"] = member_id
+        params["member_id"] = str(member_id)
 
-    if status:
+    if payment_status:
         conditions.append("p.status = :status")
-        params["status"] = status
+        params["status"] = payment_status
 
     where = " AND ".join(conditions)
 
@@ -49,7 +49,7 @@ def list_payments(
     rows = db.execute(
         text(
             f"SELECT p.id::text, p.member_id::text, m.name AS member_name, "  # noqa: S608
-            f"p.amount::float, p.due_date, p.paid_at, p.status "
+            f"p.amount, p.due_date, p.paid_at, p.status "
             f"FROM payments p "
             f"INNER JOIN members m ON m.id = p.member_id "
             f"WHERE {where} "
