@@ -91,14 +91,13 @@ def mock_decode_clerk_jwt(monkeypatch, mock_jwt_payload):
         return mock_jwt_payload
 
     monkeypatch.setattr("api.auth.decode_clerk_jwt", _fake_decode)
-    monkeypatch.setattr("api.middleware.decode_clerk_jwt", _fake_decode)
     monkeypatch.setattr("api.deps.decode_clerk_jwt", _fake_decode)
     return _fake_decode
 
 
 @pytest.fixture
-def mock_session_local(monkeypatch):
-    """Patches SessionLocal in deps to return a mock DB session."""
+def mock_session_local(monkeypatch, gym_id):
+    """Patches SessionLocal and _resolve_gym_id in deps to return a mock DB session."""
     mock_session = MagicMock()
     mock_session.execute = MagicMock()
     mock_session.commit = MagicMock()
@@ -106,6 +105,7 @@ def mock_session_local(monkeypatch):
     mock_session.close = MagicMock()
 
     monkeypatch.setattr("api.deps.SessionLocal", lambda: mock_session)
+    monkeypatch.setattr("api.deps._resolve_gym_id", lambda db, org_id: gym_id)
     return mock_session
 
 
