@@ -7,6 +7,7 @@ import logging
 from sqlalchemy import text
 
 from infra.database import SessionLocal
+from infra.tenant import clear_tenant, set_tenant
 from tasks.celery_app import celery_app
 from use_cases.calculate_score import score_all_members
 
@@ -31,6 +32,7 @@ def score_all_gyms() -> dict:
     for gym_id in gym_ids:
         db = SessionLocal()
         try:
+            set_tenant(gym_id)
             db.execute(
                 text("SET LOCAL app.current_gym_id = :gym_id"),
                 {"gym_id": gym_id},
@@ -49,6 +51,7 @@ def score_all_gyms() -> dict:
             db.rollback()
             logger.exception("Scoring failed for gym %s", gym_id)
         finally:
+            clear_tenant()
             db.close()
 
     logger.info(
