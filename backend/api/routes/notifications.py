@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
+from starlette.responses import Response
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
@@ -75,11 +76,11 @@ def list_notifications(
     )
 
 
-@router.put("/read-all", status_code=status.HTTP_204_NO_CONTENT)
+@router.put("/read-all", status_code=status.HTTP_204_NO_CONTENT, response_class=Response)
 def mark_all_notifications_read(
     db: Session = Depends(get_db),
     gym_id: str = Depends(get_current_gym_id),
-) -> None:
+) -> Response:
     """Mark all unread notifications as read for the current gym."""
     db.execute(
         text(
@@ -90,12 +91,12 @@ def mark_all_notifications_read(
     )
 
 
-@router.put("/{notification_id}/read", status_code=status.HTTP_204_NO_CONTENT)
+@router.put("/{notification_id}/read", status_code=status.HTTP_204_NO_CONTENT, response_class=Response)
 def mark_notification_read(
     notification_id: str,
     db: Session = Depends(get_db),
     gym_id: str = Depends(get_current_gym_id),
-) -> None:
+) -> Response:
     """Mark a notification as read. Only succeeds if it belongs to this gym."""
     result = db.execute(
         text(
