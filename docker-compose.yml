@@ -29,14 +29,15 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    command: uvicorn api.main:app --host 0.0.0.0 --port 8000 --reload
+    entrypoint: ["/app/scripts/start.sh"]
+    command: ["uvicorn", "api.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
     ports:
       - "8000:8000"
     volumes:
       - ./backend:/app
-    environment:
-      DATABASE_URL: postgresql://churn:churn123@db:5432/churndb
-      REDIS_URL: redis://redis:6379/0
+    env_file:
+      - .env.shared
+      - .env.backend
     depends_on:
       db:
         condition: service_healthy
@@ -47,12 +48,13 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    command: celery -A tasks.celery_app worker --beat --loglevel=info
+    entrypoint: ["/app/scripts/start-worker.sh"]
+    command: ["celery", "-A", "tasks.celery_app", "worker", "--beat", "--loglevel=info"]
     volumes:
       - ./backend:/app
-    environment:
-      DATABASE_URL: postgresql://churn:churn123@db:5432/churndb
-      REDIS_URL: redis://redis:6379/0
+    env_file:
+      - .env.shared
+      - .env.backend
     depends_on:
       db:
         condition: service_healthy
@@ -69,12 +71,13 @@ services:
     volumes:
       - ./frontend:/app
       - /app/node_modules
+    env_file:
+      - ./.env.frontend
     environment:
-      NEXT_PUBLIC_API_URL: http://localhost:8000
+      WATCHPACK_POLLING: "true"
+      CHOKIDAR_USEPOLLING: "true"
     depends_on:
       - api
-    profiles:
-      - frontend
 
 volumes:
   pgdata:
