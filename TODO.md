@@ -97,15 +97,21 @@ _(nada em teste)_
 
 ## TODO
 
-### Fase 1 — Frontend (Semanas 5-7)
-- [ ] frontend/ setup (Next.js + TypeScript + Tailwind + shadcn)
-- [ ] Clerk integration (@clerk/nextjs + middleware)
-- [ ] Layout: Sidebar + Header + Mobile menu
-- [ ] Tela: Dashboard (KPIs + tabela risco)
-- [ ] Tela: Alunos lista (busca + filtros + paginação)
-- [ ] Tela: Perfil do aluno (score + histórico)
-- [ ] Tela: Ações/Retenção
-- [ ] Tela: Pagamentos
+### Fase 1 — Frontend (Semanas 5-8)
+- [ ] PR1: Scaffolding + Design System (Next.js + TS + Tailwind + shadcn + API client + types + shared components)
+- [ ] PR2: Clerk Auth + Layout Tenant (middleware + sidebar 256px + header + mobile sheet + notifications mockup)
+- [ ] PR3: Tela Dashboard (4 KPI cards + tabela at-risk + empty state + loading skeleton)
+- [ ] PR4: Tela Alunos lista + Perfil do aluno (busca + filtros + paginação + score gauge + signals)
+- [ ] PR5: Tela Ações/Retenção + Pagamentos (tabela ações + modal Nova Ação + tabela pagamentos)
+- [ ] PR6: Tela Configurações (5 tabs: Geral, Assinatura, Integrações, Importação CSV, Equipe)
+- [ ] PR7: Auth + Onboarding (login split layout + recuperar senha 4 steps + onboarding 3 steps)
+- [ ] PR8: Admin Panel (auth JWT separada + 6 telas: dashboard, academias, assinaturas, cupons, usuarios)
+
+### Fase 1 — Backend Routes (novas, para suportar frontend)
+- [ ] GET /payments (lista paginada)
+- [ ] GET /actions + POST /actions (CRUD ações de retenção)
+- [ ] GET /gym/settings + PUT /gym/settings (configurações academia)
+- [ ] GET /notifications + PUT /notifications/{id}/read (notificações)
 
 ### Fase 1 — Security Audit (Semana 7)
 - [ ] /security audit em todas as rotas
