@@ -124,6 +124,21 @@ CREATE TABLE actions_log (
 CREATE INDEX idx_actions_log_gym ON actions_log(gym_id);
 CREATE INDEX idx_actions_log_member ON actions_log(member_id, sent_at DESC);
 
+CREATE TABLE notifications (
+    id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    gym_id      UUID NOT NULL REFERENCES gyms(id) ON DELETE CASCADE,
+    member_id   UUID REFERENCES members(id) ON DELETE CASCADE,
+    type        VARCHAR(30) NOT NULL
+                    CHECK (type IN ('churn_alert', 'action_result', 'payment_alert', 'system')),
+    title       VARCHAR(255) NOT NULL,
+    description TEXT,
+    is_read     BOOLEAN NOT NULL DEFAULT false,
+    created_at  TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX idx_notifications_gym ON notifications(gym_id, created_at DESC);
+CREATE INDEX idx_notifications_gym_unread ON notifications(gym_id, is_read) WHERE is_read = false;
+
 -- ============================================================
 -- Billing Tables (SaaS — Stripe-backed)
 -- ============================================================
@@ -256,6 +271,7 @@ ALTER TABLE actions_log ENABLE ROW LEVEL SECURITY;
 ALTER TABLE subscriptions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE invoices ENABLE ROW LEVEL SECURITY;
 ALTER TABLE coupon_usage ENABLE ROW LEVEL SECURITY;
+ALTER TABLE notifications ENABLE ROW LEVEL SECURITY;
 
 -- RLS Policies
 CREATE POLICY tenant_members ON members
@@ -283,6 +299,9 @@ CREATE POLICY tenant_invoices ON invoices
     USING (gym_id = current_setting('app.current_gym_id')::UUID);
 
 CREATE POLICY tenant_coupon_usage ON coupon_usage
+    USING (gym_id = current_setting('app.current_gym_id')::UUID);
+
+CREATE POLICY tenant_notifications ON notifications
     USING (gym_id = current_setting('app.current_gym_id')::UUID);
 
 -- ============================================================

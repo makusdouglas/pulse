@@ -12,6 +12,7 @@ imbalanced-learn==0.12.4
 joblib==1.4.2
 python-dotenv==1.0.1
 pydantic-settings==2.7.0
+email-validator>=2.0.0
 clerk-backend-api==1.5.0
 httpx==0.28.1
 python-multipart==0.0.20

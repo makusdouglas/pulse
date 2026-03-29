@@ -6,6 +6,8 @@ from datetime import date
 
 from pydantic import BaseModel, Field
 
+from api.schemas.pagination import PaginatedResponse
+
 
 class MemberResponse(BaseModel):
     id: str
@@ -17,11 +19,8 @@ class MemberResponse(BaseModel):
     cancelled_at: date | None = None
 
 
-class MemberListResponse(BaseModel):
+class MemberListResponse(PaginatedResponse):
     members: list[MemberResponse]
-    total: int
-    page: int
-    page_size: int
 
 
 class SignalsResponse(BaseModel):
