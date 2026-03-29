@@ -28,9 +28,24 @@ dev-worker:
 dev-front:
 	cd frontend && npm run dev
 
-# Testes backend
+# Testes unitarios backend (exclui integration)
 test:
-	cd backend && python -m pytest
+	cd backend && python3 -m pytest tests/ --ignore=tests/integration
+
+# Testes de integracao (requer Docker DB rodando)
+test-integration:
+	cd backend && PULSE_INTEGRATION=1 python3 -m pytest tests/integration/ -v
+
+# Todos os testes
+test-all:
+	cd backend && PULSE_INTEGRATION=1 python3 -m pytest tests/ -v
+
+# Resetar banco de testes
+test-db-reset:
+	docker compose exec -T db psql -U churn -d postgres -c "DROP DATABASE IF EXISTS churndb_test;"
+	docker compose exec -T db psql -U churn -d postgres -c "CREATE DATABASE churndb_test;"
+	cat backend/migrations/001_initial.sql | docker compose exec -T db psql -U churn -d churndb_test
+	cat backend/migrations/002_notifications.sql | docker compose exec -T db psql -U churn -d churndb_test
 
 # Lint backend
 lint:
