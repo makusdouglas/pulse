@@ -1,3 +1,4 @@
+import logging
 from collections.abc import Generator
 
 from fastapi import Depends, Header, HTTPException, status
@@ -6,7 +7,9 @@ from sqlalchemy.orm import Session
 
 from api.auth import decode_clerk_jwt, extract_gym_id
 from infra.database import SessionLocal
-from infra.tenant import get_tenant, set_tenant
+from infra.tenant import clear_tenant, get_tenant, set_tenant
+
+logger = logging.getLogger(__name__)
 
 
 def get_current_gym_id(authorization: str | None = Header(None)) -> str:
@@ -31,25 +34,43 @@ def _resolve_gym_id(db: Session, clerk_org_id: str) -> str:
     if row:
         return row.id
 
-    # Auto-provision gym for new Clerk org (early stage)
-    new_row = db.execute(
+    # Auto-provision with UPSERT to handle concurrent requests
+    result = db.execute(
         text(
             "INSERT INTO gyms (clerk_org_id, name, slug) "
             "VALUES (:org_id, :name, :slug) "
+            "ON CONFLICT (clerk_org_id) DO NOTHING "
             "RETURNING id::text AS id"
         ),
         {"org_id": clerk_org_id, "name": "My Gym", "slug": clerk_org_id},
+    )
+    new_row = result.fetchone()
+    if new_row:
+        logger.info("Auto-provisioned gym for clerk_org_id=%s", clerk_org_id)
+        return new_row.id
+
+    # INSERT returned nothing (conflict) — fetch existing row
+    row = db.execute(
+        text("SELECT id::text AS id FROM gyms WHERE clerk_org_id = :org_id"),
+        {"org_id": clerk_org_id},
     ).fetchone()
-    return new_row.id
+    if row:
+        return row.id
+
+    raise HTTPException(
+        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        detail="Failed to resolve gym for this organization",
+    )
 
 
 def get_db(
     clerk_org_id: str = Depends(get_current_gym_id),
 ) -> Generator[Session, None, None]:
     db = SessionLocal()
+    tenant_token = None
     try:
         gym_uuid = _resolve_gym_id(db, clerk_org_id)
-        set_tenant(gym_uuid)
+        tenant_token = set_tenant(gym_uuid)
         db.execute(text("SET LOCAL app.current_gym_id = :gym_id"), {"gym_id": gym_uuid})
         yield db
         db.commit()
@@ -57,6 +78,8 @@ def get_db(
         db.rollback()
         raise
     finally:
+        if tenant_token is not None:
+            clear_tenant(tenant_token)
         db.close()
 
 

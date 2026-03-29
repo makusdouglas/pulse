@@ -7,6 +7,7 @@ import logging
 from sqlalchemy import text
 
 from infra.database import SessionLocal
+from infra.tenant import clear_tenant, set_tenant
 from tasks.celery_app import celery_app
 from use_cases.features import extract_all_features
 
@@ -29,7 +30,9 @@ def extract_features_all_gyms() -> dict:
 
     for gym_id in gym_ids:
         db = SessionLocal()
+        tenant_token = None
         try:
+            tenant_token = set_tenant(gym_id)
             db.execute(
                 text("SET LOCAL app.current_gym_id = :gym_id"),
                 {"gym_id": gym_id},
@@ -44,6 +47,8 @@ def extract_features_all_gyms() -> dict:
             db.rollback()
             logger.exception("Feature extraction failed for gym %s", gym_id)
         finally:
+            if tenant_token is not None:
+                clear_tenant(tenant_token)
             db.close()
 
     logger.info(
