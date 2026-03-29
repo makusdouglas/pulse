@@ -55,3 +55,26 @@ rebuild:
 # Limpar imagens dangling manualmente
 prune:
 	docker image prune -f
+
+# Seed Clerk orgs + users
+seed-clerk:
+	cd scripts && npx tsx seed-clerk.ts
+
+# Sync Clerk orgs → banco local
+seed-db:
+	cd scripts && npx tsx seed-db.ts
+
+# Setup completo: infra + migrations + seeds
+setup:
+	@echo "1/4  Subindo infra (DB + Redis)..."
+	docker compose up -d db redis
+	@echo "2/4  Aguardando DB ficar healthy..."
+	@until docker compose exec db pg_isready -U churn -d churndb > /dev/null 2>&1; do sleep 1; done
+	@echo "3/4  Rodando migrations..."
+	docker compose exec db psql -U churn -d churndb -f /docker-entrypoint-initdb.d/001_initial.sql 2>/dev/null || \
+		cat backend/migrations/001_initial.sql | docker compose exec -T db psql -U churn -d churndb
+	cat backend/migrations/002_notifications.sql | docker compose exec -T db psql -U churn -d churndb
+	@echo "4/4  Rodando seeds..."
+	cd scripts && npx tsx seed-clerk.ts
+	cd scripts && npx tsx seed-db.ts
+	@echo "\n✅  Setup completo! Rode 'make dev-api' e 'make dev-front' para iniciar."
