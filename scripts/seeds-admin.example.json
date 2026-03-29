@@ -1,0 +1,5 @@
+{
+  "admin_users": [
+    { "email": "admin@yourapp.com", "password": "change-me", "role": "superadmin", "name": "Super Admin" }
+  ]
+}

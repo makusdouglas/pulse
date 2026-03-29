@@ -1,0 +1,12 @@
+{
+  "organizations": [
+    {
+      "name": "Academia Exemplo",
+      "slug": "academia-exemplo",
+      "users": [
+        { "email": "admin@yourapp.dev", "password": "YourPassword@2024", "first_name": "Admin", "last_name": "Name", "role": "org:admin" },
+        { "email": "member@yourapp.dev", "password": "YourPassword@2024", "first_name": "Member", "last_name": "Name", "role": "org:member" }
+      ]
+    }
+  ]
+}
