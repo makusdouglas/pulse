@@ -31,9 +31,8 @@ def score_all_gyms() -> dict:
 
     for gym_id in gym_ids:
         db = SessionLocal()
-        tenant_token = None
         try:
-            tenant_token = set_tenant(gym_id)
+            set_tenant(gym_id)
             db.execute(
                 text("SET LOCAL app.current_gym_id = :gym_id"),
                 {"gym_id": gym_id},
@@ -52,8 +51,7 @@ def score_all_gyms() -> dict:
             db.rollback()
             logger.exception("Scoring failed for gym %s", gym_id)
         finally:
-            if tenant_token is not None:
-                clear_tenant(tenant_token)
+            clear_tenant()
             db.close()
 
     logger.info(

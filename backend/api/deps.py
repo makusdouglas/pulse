@@ -1,13 +1,13 @@
 import logging
 from collections.abc import Generator
 
-from fastapi import Depends, Header, HTTPException, status
+from fastapi import Depends, Header, HTTPException, Request, status
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 from api.auth import decode_clerk_jwt, extract_gym_id
 from infra.database import SessionLocal
-from infra.tenant import clear_tenant, get_tenant, set_tenant
+from infra.tenant import clear_tenant, set_tenant
 
 logger = logging.getLogger(__name__)
 
@@ -64,13 +64,14 @@ def _resolve_gym_id(db: Session, clerk_org_id: str) -> str:
 
 
 def get_db(
+    request: Request,
     clerk_org_id: str = Depends(get_current_gym_id),
 ) -> Generator[Session, None, None]:
     db = SessionLocal()
-    tenant_token = None
     try:
         gym_uuid = _resolve_gym_id(db, clerk_org_id)
-        tenant_token = set_tenant(gym_uuid)
+        request.state.gym_uuid = gym_uuid
+        set_tenant(gym_uuid)
         db.execute(text("SET LOCAL app.current_gym_id = :gym_id"), {"gym_id": gym_uuid})
         yield db
         db.commit()
@@ -78,11 +79,16 @@ def get_db(
         db.rollback()
         raise
     finally:
-        if tenant_token is not None:
-            clear_tenant(tenant_token)
+        clear_tenant()
         db.close()
 
 
-def get_gym_uuid() -> str:
-    """Return the resolved UUID gym_id from tenant context (set by get_db)."""
-    return get_tenant()
+def get_gym_uuid(request: Request) -> str:
+    """Return the resolved UUID gym_id from request state (set by get_db)."""
+    gym_uuid = getattr(request.state, "gym_uuid", None)
+    if gym_uuid is None:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Tenant not resolved — ensure get_db runs before get_gym_uuid",
+        )
+    return gym_uuid

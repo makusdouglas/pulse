@@ -1,10 +1,10 @@
-from contextvars import ContextVar, Token
+from contextvars import ContextVar
 
 _current_gym_id: ContextVar[str | None] = ContextVar("current_gym_id", default=None)
 
 
-def set_tenant(gym_id: str) -> Token[str | None]:
-    return _current_gym_id.set(gym_id)
+def set_tenant(gym_id: str) -> None:
+    _current_gym_id.set(gym_id)
 
 
 def get_tenant() -> str:
@@ -14,5 +14,5 @@ def get_tenant() -> str:
     return gym_id
 
 
-def clear_tenant(token: Token[str | None]) -> None:
-    _current_gym_id.reset(token)
+def clear_tenant() -> None:
+    _current_gym_id.set(None)
