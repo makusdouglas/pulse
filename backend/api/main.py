@@ -5,6 +5,10 @@ from api.middleware import TenantMiddleware
 from api.routes.dashboard import router as dashboard_router
 from api.routes.members import router as members_router
 from api.routes.risk import router as risk_router
+from api.routes.actions import router as actions_router
+from api.routes.notifications import router as notifications_router
+from api.routes.payments import router as payments_router
+from api.routes.settings import router as settings_router
 from api.routes.upload import router as upload_router
 from infra.config import get_settings
 
@@ -26,6 +30,10 @@ app.include_router(dashboard_router)
 app.include_router(members_router)
 app.include_router(risk_router)
 app.include_router(upload_router)
+app.include_router(payments_router)
+app.include_router(actions_router)
+app.include_router(settings_router)
+app.include_router(notifications_router)
 
 
 @app.get("/health")
