@@ -31,8 +31,10 @@ export interface PreviewResponse<T = Record<string, unknown>> {
   total_rows: number;
 }
 
+export type MemberCommitRow = Omit<ParsedMember, "exists">;
+
 export interface CommitRequest {
-  members: ParsedMember[];
+  members: MemberCommitRow[];
   payments: ParsedPayment[];
   checkins: ParsedCheckin[];
 }

@@ -29,3 +29,4 @@ export const CHANNEL_LABELS: Record<Channel, string> = {
 export const DEFAULT_PAGE_SIZE = 20;
 export const MAX_PAGE_SIZE = 100;
 export const MAX_FILE_SIZE_MB = 10;
+export const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from datetime import date, datetime
+from typing import Literal
 
 from pydantic import BaseModel, Field
 
@@ -99,7 +100,7 @@ class MemberCommitRow(BaseModel):
     phone: str | None = None
     enrolled_at: date | None = None
     cancelled_at: date | None = None
-    status: str
+    status: Literal["active", "inactive", "cancelled"]
 
 
 class PaymentCommitRow(BaseModel):
@@ -107,7 +108,7 @@ class PaymentCommitRow(BaseModel):
     due_date: date
     paid_at: date | None = None
     amount: float
-    status: str
+    status: Literal["paid", "pending", "overdue", "cancelled"]
 
 
 class CheckinCommitRow(BaseModel):
@@ -117,13 +118,13 @@ class CheckinCommitRow(BaseModel):
 
 
 class CommitRequest(BaseModel):
-    members: list[MemberCommitRow]
-    payments: list[PaymentCommitRow] = Field(default_factory=list)
-    checkins: list[CheckinCommitRow] = Field(default_factory=list)
+    members: list[MemberCommitRow] = Field(max_length=10000)
+    payments: list[PaymentCommitRow] = Field(default_factory=list, max_length=50000)
+    checkins: list[CheckinCommitRow] = Field(default_factory=list, max_length=50000)
 
 
 class CommitResponse(BaseModel):
-    status: str = Field(description="'ok' or 'partial' or 'error'")
+    status: Literal["ok", "partial", "error"]
     members: ImportStats
     payments: ImportStats
     checkins: ImportStats

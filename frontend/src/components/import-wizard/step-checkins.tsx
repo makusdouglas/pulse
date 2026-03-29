@@ -14,7 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { api } from "@/lib/api-client";
 import { cn } from "@/lib/utils";
-import { MAX_FILE_SIZE_MB } from "@/lib/constants";
+import { API_URL, MAX_FILE_SIZE_MB } from "@/lib/constants";
 import type { ImportError } from "@/types/upload";
 import type {
   ParsedCheckin,
@@ -22,7 +22,6 @@ import type {
   WizardState,
 } from "@/types/import-wizard";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 const PAGE_SIZE = 50;
 
 interface StepCheckinsProps {

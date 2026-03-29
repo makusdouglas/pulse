@@ -15,11 +15,9 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { api } from "@/lib/api-client";
 import { cn } from "@/lib/utils";
-import { MAX_FILE_SIZE_MB } from "@/lib/constants";
+import { API_URL, MAX_FILE_SIZE_MB } from "@/lib/constants";
 import type { ImportError } from "@/types/upload";
 import type { ParsedPayment, PreviewResponse } from "@/types/import-wizard";
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 const PAGE_SIZE = 50;
 
 const STATUS_LABELS: Record<string, string> = {

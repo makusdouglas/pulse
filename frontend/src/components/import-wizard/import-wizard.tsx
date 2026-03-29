@@ -2,7 +2,7 @@
 
 import { useCallback, useState } from "react";
 import { useAuth } from "@clerk/nextjs";
-import { CheckCircle } from "lucide-react";
+import { AlertCircle, CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { api } from "@/lib/api-client";
@@ -78,21 +78,24 @@ function StepIndicator({
   );
 }
 
-const INITIAL_STATE: WizardState = {
-  members: [],
-  excludedEmails: new Set(),
-  payments: [],
-  checkins: [],
-  memberFileName: null,
-  paymentFileName: null,
-  checkinFileName: null,
-};
+function makeInitialState(): WizardState {
+  return {
+    members: [],
+    excludedEmails: new Set(),
+    payments: [],
+    checkins: [],
+    memberFileName: null,
+    paymentFileName: null,
+    checkinFileName: null,
+  };
+}
 
 export function ImportWizard({ onComplete, className }: ImportWizardProps) {
   const { getToken } = useAuth();
   const [step, setStep] = useState(1);
-  const [state, setState] = useState<WizardState>(INITIAL_STATE);
+  const [state, setState] = useState<WizardState>(makeInitialState);
   const [committing, setCommitting] = useState(false);
+  const [commitError, setCommitError] = useState<string | null>(null);
   const [commitResult, setCommitResult] = useState<CommitResponse | null>(null);
 
   const setMembers = useCallback(
@@ -138,7 +141,7 @@ export function ImportWizard({ onComplete, className }: ImportWizardProps) {
   );
 
   const resetMembers = useCallback(() => {
-    setState(INITIAL_STATE);
+    setState(makeInitialState());
   }, []);
 
   const resetPayments = useCallback(() => {
@@ -157,12 +160,17 @@ export function ImportWizard({ onComplete, className }: ImportWizardProps) {
 
   const handleCommit = useCallback(async () => {
     setCommitting(true);
+    setCommitError(null);
     try {
       const token = await getToken();
-      const selectedMembers = state.members.filter(
-        (m) => !state.excludedEmails.has(m.email),
+      const selectedMembers = state.members
+        .filter((m) => !state.excludedEmails.has(m.email))
+        .map(({ exists: _, ...rest }) => rest);
+      const selectedEmails = new Set(
+        state.members
+          .filter((m) => !state.excludedEmails.has(m.email))
+          .map((m) => m.email),
       );
-      const selectedEmails = new Set(selectedMembers.map((m) => m.email));
       const filteredPayments = state.payments.filter((p) =>
         selectedEmails.has(p.member_email),
       );
@@ -183,6 +191,10 @@ export function ImportWizard({ onComplete, className }: ImportWizardProps) {
       );
       setCommitResult(result);
       onComplete?.(result);
+    } catch (err) {
+      setCommitError(
+        err instanceof Error ? err.message : "Erro ao importar dados",
+      );
     } finally {
       setCommitting(false);
     }
@@ -263,6 +275,13 @@ export function ImportWizard({ onComplete, className }: ImportWizardProps) {
           onCommit={handleCommit}
           committing={committing}
         />
+      )}
+
+      {commitError && (
+        <div className="flex items-center gap-2 rounded-md bg-red-50 p-3 text-sm text-red-800">
+          <AlertCircle className="h-4 w-4 flex-shrink-0" />
+          {commitError}
+        </div>
       )}
     </div>
   );
