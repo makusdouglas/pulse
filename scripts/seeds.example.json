@@ -1,0 +1,19 @@
+{
+  "clerk": {
+    "user": {
+      "id": "",
+      "email": "admin@yourapp.dev",
+      "password": "YourPassword@2024",
+      "first_name": "Admin",
+      "last_name": "Pulse"
+    },
+    "organization": {
+      "id": "",
+      "name": "Academia Teste"
+    }
+  },
+  "admin": {
+    "email": "admin@pulse.com",
+    "password": "change-me"
+  }
+}
