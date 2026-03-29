@@ -2,9 +2,16 @@
 
 from __future__ import annotations
 
+from datetime import date, datetime
+
 from pydantic import BaseModel, Field
 
 from use_cases.csv_parser import ParseError
+
+
+# ---------------------------------------------------------------------------
+# Legacy single-file import (POST /import/csv)
+# ---------------------------------------------------------------------------
 
 
 class ImportStats(BaseModel):
@@ -70,3 +77,54 @@ class ImportResponse(BaseModel):
             ),
             errors=errors,
         )
+
+
+# ---------------------------------------------------------------------------
+# Wizard multi-step import (POST /import/wizard/*)
+# ---------------------------------------------------------------------------
+
+
+class PreviewResponse(BaseModel):
+    """Parsed CSV rows returned for user review — nothing is persisted."""
+
+    entity_type: str
+    rows: list[dict] = Field(default_factory=list)
+    errors: list[ImportError] = Field(default_factory=list)
+    total_rows: int = 0
+
+
+class MemberCommitRow(BaseModel):
+    name: str
+    email: str
+    phone: str | None = None
+    enrolled_at: date | None = None
+    cancelled_at: date | None = None
+    status: str
+
+
+class PaymentCommitRow(BaseModel):
+    member_email: str
+    due_date: date
+    paid_at: date | None = None
+    amount: float
+    status: str
+
+
+class CheckinCommitRow(BaseModel):
+    member_email: str
+    ts: datetime
+    duration_min: int | None = None
+
+
+class CommitRequest(BaseModel):
+    members: list[MemberCommitRow]
+    payments: list[PaymentCommitRow] = Field(default_factory=list)
+    checkins: list[CheckinCommitRow] = Field(default_factory=list)
+
+
+class CommitResponse(BaseModel):
+    status: str = Field(description="'ok' or 'partial' or 'error'")
+    members: ImportStats
+    payments: ImportStats
+    checkins: ImportStats
+    errors: list[ImportError] = Field(default_factory=list)

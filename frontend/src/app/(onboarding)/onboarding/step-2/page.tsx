@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { CsvUpload } from "@/components/csv-upload";
+import { ImportWizard } from "@/components/import-wizard/import-wizard";
 
 export default function OnboardingStep2() {
   const router = useRouter();
@@ -23,33 +23,16 @@ export default function OnboardingStep2() {
         </p>
       </div>
 
-      <div className="space-y-4">
-        <CsvUpload
-          entityType="members"
-          label="Alunos"
-          description="CSV com registros de alunos"
-        />
-        <CsvUpload
-          entityType="checkins"
-          label="Check-ins"
-          description="CSV com dados de frequencia"
-        />
-        <CsvUpload
-          entityType="payments"
-          label="Pagamentos"
-          description="CSV com historico de pagamentos"
-        />
-      </div>
+      <ImportWizard
+        onComplete={() => router.push("/onboarding/step-3")}
+      />
 
-      <div className="flex justify-between">
+      <div className="flex justify-start">
         <Button
           variant="ghost"
-          onClick={() => router.push("/dashboard")}
+          onClick={() => router.push("/onboarding/step-3")}
         >
           Pular
-        </Button>
-        <Button onClick={() => router.push("/onboarding/step-3")}>
-          Proximo
         </Button>
       </div>
     </div>

@@ -208,3 +208,45 @@ def load_csv_data(
     if not loader:
         raise ValueError(f"Unknown entity type: {entity_type}")
     return loader(db, gym_id, rows)
+
+
+def check_existing_members(
+    db: Session, gym_id: str, emails: list[str]
+) -> set[str]:
+    """Return the set of emails that already exist for this gym."""
+    if not emails:
+        return set()
+
+    rows = db.execute(
+        text(
+            "SELECT email FROM members "
+            "WHERE gym_id = :gym_id AND email = ANY(:emails)"
+        ),
+        {"gym_id": gym_id, "emails": emails},
+    ).fetchall()
+
+    return {row.email for row in rows}
+
+
+def commit_import(
+    db: Session,
+    gym_id: str,
+    members: list[dict],
+    payments: list[dict],
+    checkins: list[dict],
+) -> dict[str, LoadResult]:
+    """Insert all entities in a single transaction.
+
+    Members are upserted first so email→ID resolution works for
+    payments and checkins. The caller (get_db dependency) handles
+    commit/rollback.
+    """
+    members_result = load_members(db, gym_id, members) if members else LoadResult()
+    payments_result = load_payments(db, gym_id, payments) if payments else LoadResult()
+    checkins_result = load_checkins(db, gym_id, checkins) if checkins else LoadResult()
+
+    return {
+        "members": members_result,
+        "payments": payments_result,
+        "checkins": checkins_result,
+    }
