@@ -1,3 +1,4 @@
+import os
 import sys
 import uuid
 from unittest.mock import MagicMock
@@ -5,16 +6,18 @@ from unittest.mock import MagicMock
 import pytest
 from fastapi.testclient import TestClient
 
-# Mock psycopg2 before any import of infra.database triggers engine creation.
-# This avoids needing Postgres C libraries installed for unit tests.
-_psycopg2_mock = MagicMock()
-_psycopg2_mock.connect.return_value = MagicMock()
-_psycopg2_mock.extensions = MagicMock()
-_psycopg2_mock.extensions.POLL_OK = 1
-_psycopg2_mock.paramstyle = "pyformat"
-sys.modules.setdefault("psycopg2", _psycopg2_mock)
-sys.modules.setdefault("psycopg2.extensions", _psycopg2_mock.extensions)
-sys.modules.setdefault("psycopg2.extras", MagicMock())
+# Skip mocking when running integration tests (they need real psycopg2 + celery).
+if not os.environ.get("PULSE_INTEGRATION"):
+    # Mock psycopg2 before any import of infra.database triggers engine creation.
+    # This avoids needing Postgres C libraries installed for unit tests.
+    _psycopg2_mock = MagicMock()
+    _psycopg2_mock.connect.return_value = MagicMock()
+    _psycopg2_mock.extensions = MagicMock()
+    _psycopg2_mock.extensions.POLL_OK = 1
+    _psycopg2_mock.paramstyle = "pyformat"
+    sys.modules.setdefault("psycopg2", _psycopg2_mock)
+    sys.modules.setdefault("psycopg2.extensions", _psycopg2_mock.extensions)
+    sys.modules.setdefault("psycopg2.extras", MagicMock())
 
 # Mock celery before any import of tasks.celery_app triggers broker connection.
 
@@ -44,7 +47,7 @@ class _FakeCeleryConf:
 class _FakeCelery:
     """Minimal Celery replacement — task() is a pass-through decorator."""
 
-    def __init__(self, name="", broker="", backend=""):
+    def __init__(self, name="", broker="", backend="", **kwargs):
         self.conf = _FakeCeleryConf()
         self.conf.broker_url = broker
 

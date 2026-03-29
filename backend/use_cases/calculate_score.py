@@ -150,7 +150,7 @@ _UPSERT_SCORE_SQL = text("""
 INSERT INTO churn_scores
     (member_id, gym_id, computed_at, score, tier, reasons, origin)
 VALUES
-    (:member_id, :gym_id, CURRENT_DATE, :score, :tier, :reasons::jsonb, 'rules')
+    (:member_id, :gym_id, CURRENT_DATE, :score, :tier, CAST(:reasons AS jsonb), 'rules')
 ON CONFLICT (member_id, computed_at) DO UPDATE SET
     score   = EXCLUDED.score,
     tier    = EXCLUDED.tier,
