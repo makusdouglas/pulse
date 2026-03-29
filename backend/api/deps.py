@@ -67,10 +67,9 @@ def get_db(
     clerk_org_id: str = Depends(get_current_gym_id),
 ) -> Generator[Session, None, None]:
     db = SessionLocal()
-    tenant_token = None
     try:
         gym_uuid = _resolve_gym_id(db, clerk_org_id)
-        tenant_token = set_tenant(gym_uuid)
+        set_tenant(gym_uuid)
         db.execute(text("SET LOCAL app.current_gym_id = :gym_id"), {"gym_id": gym_uuid})
         yield db
         db.commit()
@@ -78,8 +77,7 @@ def get_db(
         db.rollback()
         raise
     finally:
-        if tenant_token is not None:
-            clear_tenant(tenant_token)
+        clear_tenant()
         db.close()
 
 
