@@ -73,6 +73,8 @@ services:
       NEXT_PUBLIC_API_URL: http://localhost:8000
     depends_on:
       - api
+    profiles:
+      - frontend
 
 volumes:
   pgdata:
