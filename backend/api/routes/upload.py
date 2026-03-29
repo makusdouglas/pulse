@@ -5,7 +5,7 @@ from __future__ import annotations
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, status
 from sqlalchemy.orm import Session
 
-from api.deps import get_current_gym_id, get_db
+from api.deps import get_db, get_gym_uuid
 from api.schemas.upload import ImportResponse
 from use_cases.csv_loader import load_csv_data
 from use_cases.csv_parser import ENTITY_REQUIRED_COLUMNS, parse_csv
@@ -20,7 +20,7 @@ async def import_csv(
     file: UploadFile = File(...),
     entity_type: str = Form(...),
     db: Session = Depends(get_db),
-    gym_id: str = Depends(get_current_gym_id),
+    gym_id: str = Depends(get_gym_uuid),
 ) -> ImportResponse:
     """Import a CSV file of members, checkins, or payments."""
     if entity_type not in ENTITY_REQUIRED_COLUMNS:

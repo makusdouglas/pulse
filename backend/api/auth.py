@@ -44,7 +44,13 @@ def decode_clerk_jwt(token: str) -> dict:
 
 
 def extract_gym_id(payload: dict) -> str:
-    org_id = payload.get("org_id")
+    # Clerk JWT v2 nests org info under "o.id"; v1 uses flat "org_id"
+    org_claim = payload.get("o")
+    if isinstance(org_claim, dict):
+        org_id = org_claim.get("id")
+    else:
+        org_id = payload.get("org_id")
+
     if not org_id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,

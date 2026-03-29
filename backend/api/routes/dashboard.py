@@ -6,7 +6,7 @@ from fastapi import APIRouter, Depends
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
-from api.deps import get_current_gym_id, get_db
+from api.deps import get_db, get_gym_uuid
 from api.schemas.dashboard import DashboardStats
 from api.schemas.score import ScoreResponse, TierCounts
 
@@ -57,7 +57,7 @@ LIMIT 10
 @router.get("/stats", response_model=DashboardStats)
 def get_dashboard_stats(
     db: Session = Depends(get_db),
-    gym_id: str = Depends(get_current_gym_id),
+    gym_id: str = Depends(get_gym_uuid),
 ) -> DashboardStats:
     """Return dashboard summary statistics for the gym."""
     mc = db.execute(_MEMBER_COUNTS_SQL, {"gym_id": gym_id}).fetchone()
