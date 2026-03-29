@@ -65,6 +65,16 @@
 - [x] backend/tests/test_features.py
 - [x] Validação retroativa: scoring acerta >65% cancelamentos (stubs — requer dados reais)
 
+### Fase 1 — Backend Routes Novas (Semana 5)
+- [x] backend/migrations/002_notifications.sql (CREATE TABLE + RLS)
+- [x] backend/api/routes/payments.py (GET /payments — lista paginada)
+- [x] backend/api/routes/actions.py (GET /actions + POST /actions)
+- [x] backend/api/routes/settings.py (GET /gym/settings + PUT /gym/settings)
+- [x] backend/api/routes/notifications.py (GET /notifications + PUT /notifications/{id}/read)
+- [x] backend/api/schemas/ (payment.py, action.py, settings.py, notification.py)
+- [x] backend/api/main.py (registrar 4 novos routers)
+- [x] backend/tests/api/test_new_endpoints.py (25 testes)
+
 ---
 
 ## DOING

@@ -8,11 +8,11 @@ from api.auth import decode_clerk_jwt, extract_gym_id
 from infra.database import SessionLocal
 
 
-def get_current_gym_id(authorization: str = Header(...)) -> str:
-    if not authorization.startswith("Bearer "):
+def get_current_gym_id(authorization: str | None = Header(None)) -> str:
+    if not authorization or not authorization.startswith("Bearer "):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid authorization header",
+            detail="Missing or invalid authorization header",
         )
 
     token = authorization.removeprefix("Bearer ").strip()
