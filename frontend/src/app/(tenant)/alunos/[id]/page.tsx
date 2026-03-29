@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { ArrowLeft, Phone, MessageCircle, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -9,31 +8,16 @@ import { Separator } from "@/components/ui/separator";
 import { TierBadge } from "@/components/tier-badge";
 import { ScoreGauge } from "@/components/members/score-gauge";
 import { SignalsChart } from "@/components/members/signals-chart";
-import { api } from "@/lib/api-client";
+import { useApi } from "@/hooks/use-api";
 import { STATUS_LABELS } from "@/lib/constants";
 import type { MemberScoreResponse } from "@/types/member";
 
 export default function MemberProfilePage() {
   const params = useParams();
   const router = useRouter();
-  const [data, setData] = useState<MemberScoreResponse | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    async function fetchMember() {
-      try {
-        const result = await api.get<MemberScoreResponse>(
-          `/members/${params.id}/score`,
-        );
-        setData(result);
-      } catch {
-        // Member not found or API unavailable
-      } finally {
-        setLoading(false);
-      }
-    }
-    fetchMember();
-  }, [params.id]);
+  const { data, isLoading: loading } = useApi<MemberScoreResponse>(
+    `/members/${params.id}/score`,
+  );
 
   if (loading) {
     return (

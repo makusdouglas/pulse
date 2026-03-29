@@ -30,8 +30,7 @@ interface DataTableProps<T> {
   emptyState?: React.ReactNode;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function DataTable<T extends Record<string, any>>({
+export function DataTable<T extends { id?: string; member_id?: string }>({
   columns,
   data,
   total,
@@ -65,7 +64,7 @@ export function DataTable<T extends Record<string, any>>({
         <TableBody>
           {data.map((row, i) => (
             <TableRow
-              key={(row.id as string) ?? (row.member_id as string) ?? i}
+              key={row.id ?? row.member_id ?? i}
               className={onRowClick ? "cursor-pointer" : undefined}
               onClick={() => onRowClick?.(row)}
             >

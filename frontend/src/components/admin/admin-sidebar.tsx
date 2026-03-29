@@ -11,6 +11,7 @@ import {
   LogOut,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { clearAdminToken } from "@/components/admin/admin-guard";
 import { cn } from "@/lib/utils";
 
 const navItems = [
@@ -60,7 +61,7 @@ export function AdminSidebar() {
           size="sm"
           className="w-full justify-start text-background/60 hover:bg-background/5 hover:text-background"
           onClick={() => {
-            // TODO: clear admin JWT and redirect
+            clearAdminToken();
             window.location.href = "/admin/login";
           }}
         >

@@ -28,7 +28,7 @@ export default function AdminGymDetailPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-4">
         <Card>
           <CardContent className="p-4">
             <p className="text-xs text-muted-foreground">Membros</p>

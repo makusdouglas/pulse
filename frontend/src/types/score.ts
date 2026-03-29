@@ -1,4 +1,6 @@
-import type { ScoreResponse, TierCounts } from "./dashboard";
+import type { ScoreResponse, TierCounts, Tier } from "./dashboard";
+
+export type { Tier };
 
 export interface AtRiskResponse {
   members: ScoreResponse[];
@@ -7,5 +9,3 @@ export interface AtRiskResponse {
   page_size: number;
   tier_counts: TierCounts;
 }
-
-export type Tier = "critical" | "medium" | "low" | "safe";

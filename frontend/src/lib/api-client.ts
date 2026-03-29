@@ -3,6 +3,7 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 interface RequestOptions extends Omit<RequestInit, "body"> {
   body?: unknown;
   token?: string;
+  rawBody?: BodyInit;
 }
 
 class ApiError extends Error {
@@ -17,10 +18,10 @@ class ApiError extends Error {
 
 async function request<T>(
   path: string,
-  { body, token, ...options }: RequestOptions = {},
+  { body, token, rawBody, ...options }: RequestOptions = {},
 ): Promise<T> {
   const headers: Record<string, string> = {
-    "Content-Type": "application/json",
+    ...(rawBody ? {} : { "Content-Type": "application/json" }),
     ...(options.headers as Record<string, string>),
   };
 
@@ -31,7 +32,7 @@ async function request<T>(
   const response = await fetch(`${API_URL}${path}`, {
     ...options,
     headers,
-    body: body ? JSON.stringify(body) : undefined,
+    body: rawBody ?? (body ? JSON.stringify(body) : undefined),
   });
 
   if (!response.ok) {
@@ -39,6 +40,7 @@ async function request<T>(
     throw new ApiError(response.status, text);
   }
 
+  if (response.status === 204) return undefined as T;
   return response.json();
 }
 
@@ -55,29 +57,8 @@ export const api = {
   delete: <T>(path: string, token?: string) =>
     request<T>(path, { method: "DELETE", token }),
 
-  upload: async <T>(
-    path: string,
-    formData: FormData,
-    token?: string,
-  ): Promise<T> => {
-    const headers: Record<string, string> = {};
-    if (token) {
-      headers["Authorization"] = `Bearer ${token}`;
-    }
-
-    const response = await fetch(`${API_URL}${path}`, {
-      method: "POST",
-      headers,
-      body: formData,
-    });
-
-    if (!response.ok) {
-      const text = await response.text().catch(() => "Unknown error");
-      throw new ApiError(response.status, text);
-    }
-
-    return response.json();
-  },
+  upload: <T>(path: string, formData: FormData, token?: string) =>
+    request<T>(path, { method: "POST", rawBody: formData, token }),
 };
 
 export { ApiError };

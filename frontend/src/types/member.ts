@@ -1,9 +1,11 @@
+import type { Tier, MemberStatus } from "./dashboard";
+
 export interface MemberResponse {
   id: string;
   name: string;
   email: string | null;
   phone: string | null;
-  status: "active" | "inactive" | "cancelled";
+  status: MemberStatus;
   enrolled_at: string | null;
   cancelled_at: string | null;
 }
@@ -28,7 +30,7 @@ export interface SignalsResponse {
 export interface MemberScoreResponse {
   member: MemberResponse;
   score: number;
-  tier: "critical" | "medium" | "low" | "safe";
+  tier: Tier;
   reasons: string[];
   signals: SignalsResponse;
   computed_at: string;

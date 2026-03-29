@@ -16,7 +16,7 @@ import { DataTable, type Column } from "@/components/data-table";
 import { EmptyState } from "@/components/empty-state";
 import { useDebounce } from "@/hooks/use-debounce";
 import { usePagination } from "@/hooks/use-pagination";
-import { api } from "@/lib/api-client";
+import { useApi } from "@/hooks/use-api";
 import { STATUS_LABELS } from "@/lib/constants";
 import type { MemberResponse, MemberListResponse } from "@/types/member";
 
@@ -79,36 +79,21 @@ export default function AlunosPage() {
   const [status, setStatus] = useState<string>("all");
   const debouncedSearch = useDebounce(search);
   const { page, pageSize, nextPage, prevPage, resetPage } = usePagination();
-  const [data, setData] = useState<MemberListResponse | null>(null);
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     resetPage();
   }, [debouncedSearch, status, resetPage]);
 
-  useEffect(() => {
-    async function fetchMembers() {
-      setLoading(true);
-      try {
-        const params = new URLSearchParams({
-          page: page.toString(),
-          page_size: pageSize.toString(),
-        });
-        if (debouncedSearch) params.set("search", debouncedSearch);
-        if (status !== "all") params.set("status", status);
+  const params = new URLSearchParams({
+    page: page.toString(),
+    page_size: pageSize.toString(),
+  });
+  if (debouncedSearch) params.set("search", debouncedSearch);
+  if (status !== "all") params.set("status", status);
 
-        const result = await api.get<MemberListResponse>(
-          `/members?${params.toString()}`,
-        );
-        setData(result);
-      } catch {
-        // API not available
-      } finally {
-        setLoading(false);
-      }
-    }
-    fetchMembers();
-  }, [page, pageSize, debouncedSearch, status]);
+  const { data, isLoading: loading } = useApi<MemberListResponse>(
+    `/members?${params.toString()}`,
+  );
 
   return (
     <div className="space-y-6">

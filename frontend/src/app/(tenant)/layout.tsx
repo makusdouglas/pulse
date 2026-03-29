@@ -1,13 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import { ClerkProvider } from "@clerk/nextjs";
-import { ptBR } from "@clerk/localizations";
 import { Sidebar } from "@/components/layout/sidebar";
 import { Header } from "@/components/layout/header";
 import { MobileSidebar } from "@/components/layout/mobile-sidebar";
 
-function TenantShell({ children }: { children: React.ReactNode }) {
+export default function TenantLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
@@ -23,23 +25,5 @@ function TenantShell({ children }: { children: React.ReactNode }) {
         </main>
       </div>
     </div>
-  );
-}
-
-export default function TenantLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  const clerkKey = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
-
-  if (!clerkKey || clerkKey.includes("placeholder")) {
-    return <TenantShell>{children}</TenantShell>;
-  }
-
-  return (
-    <ClerkProvider publishableKey={clerkKey} localization={ptBR}>
-      <TenantShell>{children}</TenantShell>
-    </ClerkProvider>
   );
 }

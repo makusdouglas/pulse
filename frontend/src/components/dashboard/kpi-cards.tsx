@@ -31,8 +31,8 @@ export function KpiCards({ stats }: KpiCardsProps) {
       highlight: true,
     },
     {
-      label: "Taxa de Churn",
-      value: `${stats.avg_score.toFixed(1)}%`,
+      label: "Score Medio",
+      value: stats.avg_score.toFixed(1),
       icon: TrendingUp,
       change: null,
     },

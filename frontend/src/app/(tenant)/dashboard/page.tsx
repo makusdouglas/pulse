@@ -1,41 +1,24 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { ShieldCheck } from "lucide-react";
-import { api } from "@/lib/api-client";
 import { KpiCards } from "@/components/dashboard/kpi-cards";
 import { AtRiskTable } from "@/components/dashboard/at-risk-table";
 import { EmptyState } from "@/components/empty-state";
+import { useApi } from "@/hooks/use-api";
 import { usePagination } from "@/hooks/use-pagination";
 import type { DashboardStats } from "@/types/dashboard";
 import type { AtRiskResponse } from "@/types/score";
 import DashboardLoading from "./loading";
 
 export default function DashboardPage() {
-  const [stats, setStats] = useState<DashboardStats | null>(null);
-  const [atRisk, setAtRisk] = useState<AtRiskResponse | null>(null);
-  const [loading, setLoading] = useState(true);
   const { page, pageSize, nextPage, prevPage } = usePagination();
 
-  useEffect(() => {
-    async function fetchData() {
-      try {
-        const [dashboardData, atRiskData] = await Promise.all([
-          api.get<DashboardStats>("/dashboard/stats"),
-          api.get<AtRiskResponse>(
-            `/at-risk?page=${page}&page_size=${pageSize}`,
-          ),
-        ]);
-        setStats(dashboardData);
-        setAtRisk(atRiskData);
-      } catch {
-        // API not available — show empty state
-      } finally {
-        setLoading(false);
-      }
-    }
-    fetchData();
-  }, [page, pageSize]);
+  const { data: stats, isLoading: loadingStats } =
+    useApi<DashboardStats>("/dashboard/stats");
+  const { data: atRisk, isLoading: loadingAtRisk } =
+    useApi<AtRiskResponse>(`/at-risk?page=${page}&page_size=${pageSize}`);
+
+  const loading = loadingStats || loadingAtRisk;
 
   if (loading) return <DashboardLoading />;
 
