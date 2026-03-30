@@ -79,7 +79,10 @@ class TestCommitImport:
         assert results["checkins"].inserted == 0
 
     def test_members_only(self, db, gym_id):
-        db.execute.return_value.fetchone.return_value = None  # new member
+        WasInsertedRow = namedtuple("WasInsertedRow", ["was_inserted"])
+        db.execute.return_value.fetchall.return_value = [
+            WasInsertedRow(was_inserted=True),
+        ]
 
         members = [self._make_member_row()]
         results = commit_import(db, gym_id, members, [], [])
@@ -90,19 +93,17 @@ class TestCommitImport:
 
     def test_all_entities(self, db, gym_id):
         member_id = str(uuid.uuid4())
-        MemberRow = namedtuple("MemberRow", ["id"])
+        WasInsertedRow = namedtuple("WasInsertedRow", ["was_inserted"])
         ResolveRow = namedtuple("ResolveRow", ["id", "email"])
 
-        call_count = 0
-
         def side_effect(query, params=None):
-            nonlocal call_count
-            call_count += 1
             mock_result = MagicMock()
             sql_str = str(query)
 
-            if "SELECT id FROM members" in sql_str:
-                mock_result.fetchone.return_value = None  # new member
+            if "INSERT INTO members" in sql_str:
+                mock_result.fetchall.return_value = [
+                    WasInsertedRow(was_inserted=True),
+                ]
             elif "SELECT id, email FROM members" in sql_str:
                 mock_result.fetchall.return_value = [
                     ResolveRow(id=member_id, email="joao@email.com")
