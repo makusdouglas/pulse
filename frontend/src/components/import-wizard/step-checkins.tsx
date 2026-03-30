@@ -1,0 +1,356 @@
+"use client";
+
+import { useCallback, useState } from "react";
+import { useAuth } from "@clerk/nextjs";
+import {
+  AlertCircle,
+  Download,
+  Info,
+  Loader2,
+  RefreshCw,
+  Upload,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { api } from "@/lib/api-client";
+import { cn } from "@/lib/utils";
+import { API_URL, MAX_FILE_SIZE_MB } from "@/lib/constants";
+import type { ImportError } from "@/types/upload";
+import type {
+  ParsedCheckin,
+  PreviewResponse,
+  WizardState,
+} from "@/types/import-wizard";
+
+const PAGE_SIZE = 50;
+
+interface StepCheckinsProps {
+  wizardState: WizardState;
+  fileName: string | null;
+  onParsed: (checkins: ParsedCheckin[], fileName: string) => void;
+  onReset: () => void;
+  onBack: () => void;
+  onCommit: () => void;
+  committing: boolean;
+}
+
+export function StepCheckins({
+  wizardState,
+  fileName,
+  onParsed,
+  onReset,
+  onBack,
+  onCommit,
+  committing,
+}: StepCheckinsProps) {
+  const { getToken } = useAuth();
+  const [uploading, setUploading] = useState(false);
+  const [dragOver, setDragOver] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [parseErrors, setParseErrors] = useState<ImportError[]>([]);
+  const [page, setPage] = useState(0);
+
+  const uploaded = fileName !== null;
+  const { members, excludedEmails, payments, checkins } = wizardState;
+
+  const handleUpload = useCallback(
+    async (file: File) => {
+      if (file.size > MAX_FILE_SIZE_MB * 1024 * 1024) {
+        setError(`Arquivo excede o limite de ${MAX_FILE_SIZE_MB}MB`);
+        return;
+      }
+      if (!file.name.endsWith(".csv")) {
+        setError("Apenas arquivos CSV sao aceitos");
+        return;
+      }
+
+      setUploading(true);
+      setError(null);
+      setParseErrors([]);
+
+      try {
+        const token = await getToken();
+        const formData = new FormData();
+        formData.append("file", file);
+        formData.append("entity_type", "checkins");
+
+        const res = await api.upload<PreviewResponse<ParsedCheckin>>(
+          "/import/wizard/preview",
+          formData,
+          token ?? undefined,
+        );
+
+        onParsed(res.rows, file.name);
+        if (res.errors.length > 0) setParseErrors(res.errors);
+        setPage(0);
+      } catch (err) {
+        setError(
+          err instanceof Error ? err.message : "Erro ao processar arquivo",
+        );
+      } finally {
+        setUploading(false);
+      }
+    },
+    [getToken, onParsed],
+  );
+
+  const handleDrop = useCallback(
+    (e: React.DragEvent) => {
+      e.preventDefault();
+      setDragOver(false);
+      const file = e.dataTransfer.files[0];
+      if (file) handleUpload(file);
+    },
+    [handleUpload],
+  );
+
+  const handleFileSelect = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      if (file) handleUpload(file);
+    },
+    [handleUpload],
+  );
+
+  const selectedMembers = members.filter(
+    (m) => !excludedEmails.has(m.email),
+  );
+  const selectedEmails = new Set(selectedMembers.map((m) => m.email));
+  const newMembers = selectedMembers.filter((m) => !m.exists).length;
+  const updatedMembers = selectedMembers.filter((m) => m.exists).length;
+
+  const visibleCheckins = checkins.filter((c) =>
+    selectedEmails.has(c.member_email),
+  );
+  const filteredCheckinsCount = checkins.length - visibleCheckins.length;
+
+  const visiblePayments = payments.filter((p) =>
+    selectedEmails.has(p.member_email),
+  );
+
+  const totalPages = Math.ceil(visibleCheckins.length / PAGE_SIZE);
+  const paged = visibleCheckins.slice(
+    page * PAGE_SIZE,
+    (page + 1) * PAGE_SIZE,
+  );
+
+  return (
+    <>
+      <Card>
+        <CardHeader className="flex-row items-center justify-between space-y-0 pb-2">
+          <div className="space-y-0.5">
+            <p className="text-base font-semibold">
+              3. Envie o CSV de Check-ins
+            </p>
+            <p className="text-[13px] text-muted-foreground">
+              Faca upload do arquivo com os dados de frequencia
+            </p>
+          </div>
+          <a
+            href={`${API_URL}/import/wizard/template/checkins`}
+            className="flex items-center gap-1 text-[13px] font-medium text-primary hover:underline"
+          >
+            <Download className="h-3.5 w-3.5" />
+            Baixar modelo
+          </a>
+        </CardHeader>
+
+        <CardContent className="space-y-4">
+          {!uploaded && (
+            <div
+              className={cn(
+                "flex flex-col items-center justify-center rounded-lg border-2 border-dashed p-6 transition-colors",
+                dragOver
+                  ? "border-primary bg-primary/5"
+                  : "border-border hover:border-primary/50",
+                uploading && "pointer-events-none opacity-50",
+              )}
+              onDragOver={(e) => {
+                e.preventDefault();
+                setDragOver(true);
+              }}
+              onDragLeave={() => setDragOver(false)}
+              onDrop={handleDrop}
+            >
+              {uploading ? (
+                <Loader2 className="mb-2 h-8 w-8 animate-spin text-muted-foreground" />
+              ) : (
+                <Upload className="mb-2 h-8 w-8 text-muted-foreground" />
+              )}
+              <p className="mb-2 text-sm text-muted-foreground">
+                Arraste o CSV aqui ou
+              </p>
+              <label>
+                <Button variant="outline" size="sm" asChild>
+                  <span>Selecionar arquivo</span>
+                </Button>
+                <input
+                  type="file"
+                  accept=".csv"
+                  className="hidden"
+                  onChange={handleFileSelect}
+                  disabled={uploading}
+                />
+              </label>
+            </div>
+          )}
+
+          {uploaded && (
+            <>
+              <div className="flex items-center justify-between rounded-md bg-muted px-3 py-2 text-sm">
+                <span className="font-medium">{fileName}</span>
+                <button
+                  type="button"
+                  onClick={onReset}
+                  className="flex items-center gap-1 text-xs text-primary hover:underline"
+                >
+                  <RefreshCw className="h-3 w-3" />
+                  Reenviar CSV
+                </button>
+              </div>
+
+              {filteredCheckinsCount > 0 && (
+                <div className="flex items-center gap-1.5 rounded-md bg-muted px-3 py-2 text-xs text-muted-foreground">
+                  <Info className="h-3.5 w-3.5" />
+                  {filteredCheckinsCount} check-in(s) filtrado(s) (alunos
+                  desmarcados)
+                </div>
+              )}
+
+              <div className="overflow-hidden rounded-lg border">
+                <table className="w-full text-[13px]">
+                  <thead>
+                    <tr className="bg-muted">
+                      <th className="p-3 text-left font-medium text-muted-foreground">
+                        Email Aluno
+                      </th>
+                      <th className="p-3 text-left font-medium text-muted-foreground">
+                        Data/Hora
+                      </th>
+                      <th className="hidden p-3 text-left font-medium text-muted-foreground lg:table-cell">
+                        Duracao
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {paged.map((c, i) => (
+                      <tr key={`${c.member_email}-${c.ts}-${i}`} className="border-t">
+                        <td className="p-3">{c.member_email}</td>
+                        <td className="p-3">{c.ts}</td>
+                        <td className="hidden p-3 lg:table-cell">
+                          {c.duration_min ? `${c.duration_min} min` : "—"}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {totalPages > 1 && (
+                <div className="flex items-center justify-between text-xs text-muted-foreground">
+                  <span>
+                    Pagina {page + 1} de {totalPages} (
+                    {visibleCheckins.length} check-ins)
+                  </span>
+                  <div className="flex gap-1">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled={page === 0}
+                      onClick={() => setPage((p) => p - 1)}
+                    >
+                      Anterior
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled={page >= totalPages - 1}
+                      onClick={() => setPage((p) => p + 1)}
+                    >
+                      Proximo
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </>
+          )}
+
+          {parseErrors.length > 0 && (
+            <div className="rounded-md bg-yellow-50 p-3 text-sm text-yellow-800">
+              <p className="font-medium">
+                {parseErrors.length} erro(s) de validacao
+              </p>
+              <ul className="mt-1 list-inside list-disc">
+                {parseErrors.slice(0, 5).map((e, i) => (
+                  <li key={i} className="text-xs">
+                    Linha {e.row}: {e.message}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {error && (
+            <div className="flex items-center gap-2 rounded-md bg-red-50 p-3 text-sm text-red-800">
+              <AlertCircle className="h-4 w-4 flex-shrink-0" />
+              {error}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Summary */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Resumo da Importacao</CardTitle>
+          <p className="text-[13px] text-muted-foreground">
+            Confirme os dados antes de importar
+          </p>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+            <div className="rounded-lg bg-muted p-4">
+              <p className="text-2xl font-bold">{selectedMembers.length}</p>
+              <p className="text-xs text-muted-foreground">
+                Alunos ({newMembers} novos
+                {updatedMembers > 0 && `, ${updatedMembers} atualiz.`})
+              </p>
+            </div>
+            <div className="rounded-lg bg-muted p-4">
+              <p className="text-2xl font-bold">{visiblePayments.length}</p>
+              <p className="text-xs text-muted-foreground">Pagamentos</p>
+            </div>
+            <div className="rounded-lg bg-muted p-4">
+              <p className="text-2xl font-bold">{visibleCheckins.length}</p>
+              <p className="text-xs text-muted-foreground">Check-ins</p>
+            </div>
+            {excludedEmails.size > 0 && (
+              <div className="rounded-lg bg-muted p-4">
+                <p className="text-2xl font-bold text-destructive">
+                  {excludedEmails.size}
+                </p>
+                <p className="text-xs text-muted-foreground">Excluidos</p>
+              </div>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
+      <div className="flex justify-between">
+        <Button variant="ghost" onClick={onBack}>
+          Voltar
+        </Button>
+        <Button onClick={onCommit} disabled={committing}>
+          {committing ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Importando...
+            </>
+          ) : (
+            "Importar"
+          )}
+        </Button>
+      </div>
+    </>
+  );
+}

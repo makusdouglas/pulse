@@ -97,6 +97,53 @@ _(nada em teste)_
 
 ## TODO
 
+### Refactor — Import Wizard (pós REVIEW-007)
+
+#### DRY: Extrair componente compartilhado de upload CSV
+- **Problema**: `step-members.tsx`, `step-payments.tsx` e `step-checkins.tsx` repetem ~120 linhas idênticas cada — `handleUpload` (validação tamanho/extensão, FormData, chamada preview), `handleDrop`/`handleFileSelect` (event handlers drag-and-drop), o JSX da dropzone (border dashed, ícone, texto, botão), banner de erros de parse, e controles de paginação.
+- **Solução**: Criar `<CsvUploadZone>` em `frontend/src/components/import-wizard/csv-upload-zone.tsx`:
+  - Props: `entityType: "members" | "payments" | "checkins"`, `fileName: string | null`, `onResult: (rows, fileName) => void`, `onError: (msg) => void`, `onReset: () => void`
+  - Encapsula: validação de arquivo, drag-and-drop, chamada ao `POST /import/wizard/preview`, estado de loading, dropzone UI (antes do upload) e file header + "Reenviar CSV" (após upload)
+  - Cada step component passa apenas o `entityType` e recebe os rows via callback, renderizando só a tabela específica
+- **Também extrair**: `<ParseErrorBanner errors={[]} />` e `<PaginationControls page totalPages onPageChange />` como componentes reutilizáveis
+- **Impacto**: Reduz ~360 linhas duplicadas para ~150 linhas totais. Cada step fica com ~80 linhas (só a tabela)
+- **Arquivos a modificar**: `step-members.tsx`, `step-payments.tsx`, `step-checkins.tsx`
+- **Arquivo novo**: `csv-upload-zone.tsx`
+- **Testes**: Verificar que upload, drag-drop, reenvio, e erros funcionam igual em todos os 3 steps
+
+#### Performance: Bulk SQL inserts no csv_loader
+- **Problema**: `load_members()`, `load_checkins()` e `load_payments()` em `backend/use_cases/csv_loader.py` inserem registro por registro com `db.execute()` individual. Para um import de 5.000 membros + 10.000 pagamentos + 50.000 checkins = **65.000+ queries SQL** numa única request HTTP. Vai causar timeout (~30s) e lock contention no banco.
+- **Detalhamento do problema atual**:
+  - `load_members`: 2 queries por membro (SELECT exists + INSERT/UPDATE) = 10.000 queries para 5K membros
+  - `load_checkins`: 1 query de resolução de emails + 1 INSERT por checkin = 50.001 queries para 50K checkins
+  - `load_payments`: mesmo padrão do checkins
+- **Solução para `load_members`**: Usar PostgreSQL `INSERT ... ON CONFLICT` em batch:
+  ```sql
+  INSERT INTO members (gym_id, name, email, phone, enrolled_at, cancelled_at, status)
+  VALUES (:gym_id, :name, :email, :phone, :enrolled_at, :cancelled_at, :status),
+         (:gym_id, :name2, :email2, ...),
+         ...
+  ON CONFLICT (gym_id, email) DO UPDATE SET
+    name = EXCLUDED.name, phone = EXCLUDED.phone,
+    enrolled_at = EXCLUDED.enrolled_at, cancelled_at = EXCLUDED.cancelled_at,
+    status = EXCLUDED.status, updated_at = now()
+  RETURNING email, (xmax = 0) AS inserted
+  ```
+  - O `RETURNING ... (xmax = 0)` permite contar inserted vs updated sem query extra
+  - Processar em batches de 500 rows para não exceder limites de parâmetros do PostgreSQL
+- **Solução para `load_checkins` e `load_payments`**: Usar `executemany()` ou construir bulk VALUES:
+  ```sql
+  INSERT INTO checkins (gym_id, member_id, ts, duration_min)
+  VALUES (:gym_id, :member_id, :ts, :duration_min),
+         ...
+  ```
+  - A resolução de emails (`_resolve_member_ids`) já é batch — está ok
+  - Processar INSERTs em batches de 1000 rows
+- **Impacto**: Reduz 65K queries para ~130 queries (batches de 500). Request que leva 30s+ passa a levar <2s.
+- **Arquivos a modificar**: `backend/use_cases/csv_loader.py`
+- **Atenção**: As funções são usadas tanto pelo wizard (`commit_import`) quanto pelo endpoint legacy (`load_csv_data`). Manter a interface (`LoadResult` com inserted/updated/skipped/errors) idêntica para não quebrar nenhum consumidor.
+- **Testes**: Rodar todos os testes existentes (`test_csv_loader.py`, `test_csv_loader_wizard.py`, `test_upload_route.py`, `test_wizard_route.py`) + testes de integração. Adicionar teste com 1000+ rows para validar performance.
+
 ### Fase 1 — Frontend (Semanas 5-8)
 - [ ] PR1: Scaffolding + Design System (Next.js + TS + Tailwind + shadcn + API client + types + shared components)
 - [ ] PR2: Clerk Auth + Layout Tenant (middleware + sidebar 256px + header + mobile sheet + notifications mockup)

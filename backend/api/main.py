@@ -9,6 +9,7 @@ from api.routes.actions import router as actions_router
 from api.routes.notifications import router as notifications_router
 from api.routes.payments import router as payments_router
 from api.routes.settings import router as settings_router
+from api.routes.import_wizard import router as import_wizard_router
 from api.routes.upload import router as upload_router
 from infra.config import get_settings
 
@@ -30,6 +31,7 @@ app.include_router(dashboard_router)
 app.include_router(members_router)
 app.include_router(risk_router)
 app.include_router(upload_router)
+app.include_router(import_wizard_router)
 app.include_router(payments_router)
 app.include_router(actions_router)
 app.include_router(settings_router)
