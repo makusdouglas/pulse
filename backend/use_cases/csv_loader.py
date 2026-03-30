@@ -50,7 +50,7 @@ def load_members(db: Session, gym_id: str, rows: list[dict]) -> LoadResult:
                 params[f"name_{j}"] = row["name"]
                 params[f"email_{j}"] = row["email"]
                 params[f"phone_{j}"] = row.get("phone")
-                params[f"enrolled_at_{j}"] = row.get("enrolled_at")
+                params[f"enrolled_at_{j}"] = row.get("enrolled_at") or date.today()
                 params[f"cancelled_at_{j}"] = row.get("cancelled_at")
                 params[f"status_{j}"] = row["status"]
 
