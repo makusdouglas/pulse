@@ -24,68 +24,58 @@ class LoadResult:
     errors: list[str] = field(default_factory=list)
 
 
-def load_members(db: Session, gym_id: str, rows: list[dict]) -> LoadResult:
-    """Upsert members by (gym_id, email).
+BATCH_SIZE_MEMBERS = 500
+BATCH_SIZE_ROWS = 1000
 
-    If a member with the same email exists for this gym, update their fields.
-    Otherwise, insert a new member.
+
+def load_members(db: Session, gym_id: str, rows: list[dict]) -> LoadResult:
+    """Upsert members by (gym_id, email) in bulk batches.
+
+    Uses INSERT ... ON CONFLICT DO UPDATE with RETURNING to distinguish
+    inserted vs updated rows in a single round-trip per batch.
     """
     result = LoadResult()
 
-    for row in rows:
+    for i in range(0, len(rows), BATCH_SIZE_MEMBERS):
+        batch = rows[i : i + BATCH_SIZE_MEMBERS]
         try:
-            existing = db.execute(
-                text(
-                    "SELECT id FROM members "
-                    "WHERE gym_id = :gym_id AND email = :email "
-                    "LIMIT 1"
-                ),
-                {"gym_id": gym_id, "email": row["email"]},
-            ).fetchone()
+            # Build multi-row VALUES clause
+            values_parts = []
+            params: dict = {"gym_id": gym_id}
+            for j, row in enumerate(batch):
+                values_parts.append(
+                    f"(:gym_id, :name_{j}, :email_{j}, :phone_{j}, "
+                    f":enrolled_at_{j}, :cancelled_at_{j}, :status_{j})"
+                )
+                params[f"name_{j}"] = row["name"]
+                params[f"email_{j}"] = row["email"]
+                params[f"phone_{j}"] = row.get("phone")
+                params[f"enrolled_at_{j}"] = row.get("enrolled_at") or date.today()
+                params[f"cancelled_at_{j}"] = row.get("cancelled_at")
+                params[f"status_{j}"] = row["status"]
 
-            if existing:
-                db.execute(
-                    text(
-                        "UPDATE members SET "
-                        "name = :name, phone = :phone, "
-                        "enrolled_at = :enrolled_at, "
-                        "cancelled_at = :cancelled_at, "
-                        "status = :status, "
-                        "updated_at = now() "
-                        "WHERE gym_id = :gym_id AND email = :email"
-                    ),
-                    {
-                        "gym_id": gym_id,
-                        "email": row["email"],
-                        "name": row["name"],
-                        "phone": row.get("phone"),
-                        "enrolled_at": row.get("enrolled_at"),
-                        "cancelled_at": row.get("cancelled_at"),
-                        "status": row["status"],
-                    },
-                )
-                result.updated += 1
-            else:
-                db.execute(
-                    text(
-                        "INSERT INTO members "
-                        "(gym_id, name, email, phone, enrolled_at, cancelled_at, status) "
-                        "VALUES (:gym_id, :name, :email, :phone, :enrolled_at, :cancelled_at, :status)"
-                    ),
-                    {
-                        "gym_id": gym_id,
-                        "name": row["name"],
-                        "email": row["email"],
-                        "phone": row.get("phone"),
-                        "enrolled_at": row.get("enrolled_at"),
-                        "cancelled_at": row.get("cancelled_at"),
-                        "status": row["status"],
-                    },
-                )
-                result.inserted += 1
+            sql = (
+                "INSERT INTO members "
+                "(gym_id, name, email, phone, enrolled_at, cancelled_at, status) "
+                f"VALUES {', '.join(values_parts)} "
+                "ON CONFLICT (gym_id, email) DO UPDATE SET "
+                "name = EXCLUDED.name, phone = EXCLUDED.phone, "
+                "enrolled_at = EXCLUDED.enrolled_at, "
+                "cancelled_at = EXCLUDED.cancelled_at, "
+                "status = EXCLUDED.status, "
+                "updated_at = now() "
+                "RETURNING (xmax = 0) AS was_inserted"
+            )
+
+            rows_result = db.execute(text(sql), params).fetchall()
+            for r in rows_result:
+                if r.was_inserted:
+                    result.inserted += 1
+                else:
+                    result.updated += 1
         except Exception as exc:
-            logger.warning("Failed to load member row: %s", exc)
-            result.errors.append(f"Member {row.get('email')}: {exc}")
+            logger.warning("Failed to load member batch %d: %s", i, exc)
+            result.errors.append(f"Member batch starting at row {i}: {exc}")
 
     return result
 
@@ -109,7 +99,7 @@ def _resolve_member_ids(
 
 
 def load_checkins(db: Session, gym_id: str, rows: list[dict]) -> LoadResult:
-    """Insert checkins, linking by member email.
+    """Insert checkins in bulk batches, linking by member email.
 
     Skips rows whose member_email doesn't match an existing member.
     """
@@ -118,40 +108,45 @@ def load_checkins(db: Session, gym_id: str, rows: list[dict]) -> LoadResult:
     emails = {row["member_email"] for row in rows}
     email_to_id = _resolve_member_ids(db, gym_id, emails)
 
+    # Separate valid rows from skipped
+    valid_rows = []
     for row in rows:
         member_id = email_to_id.get(row["member_email"])
         if not member_id:
             result.skipped += 1
-            result.errors.append(
-                f"Member not found: {row['member_email']}"
-            )
+            result.errors.append(f"Member not found: {row['member_email']}")
             continue
+        valid_rows.append({**row, "_member_id": member_id})
 
+    # Bulk insert in batches
+    for i in range(0, len(valid_rows), BATCH_SIZE_ROWS):
+        batch = valid_rows[i : i + BATCH_SIZE_ROWS]
         try:
-            db.execute(
-                text(
-                    "INSERT INTO checkins (gym_id, member_id, ts, duration_min) "
-                    "VALUES (:gym_id, :member_id, :ts, :duration_min)"
-                ),
-                {
-                    "gym_id": gym_id,
-                    "member_id": member_id,
-                    "ts": row["ts"],
-                    "duration_min": row.get("duration_min"),
-                },
+            values_parts = []
+            params: dict = {"gym_id": gym_id}
+            for j, row in enumerate(batch):
+                values_parts.append(
+                    f"(:gym_id, :mid_{j}, :ts_{j}, :dur_{j})"
+                )
+                params[f"mid_{j}"] = row["_member_id"]
+                params[f"ts_{j}"] = row["ts"]
+                params[f"dur_{j}"] = row.get("duration_min")
+
+            sql = (
+                "INSERT INTO checkins (gym_id, member_id, ts, duration_min) "
+                f"VALUES {', '.join(values_parts)}"
             )
-            result.inserted += 1
+            db.execute(text(sql), params)
+            result.inserted += len(batch)
         except Exception as exc:
-            logger.warning("Failed to load checkin row: %s", exc)
-            result.errors.append(
-                f"Checkin {row['member_email']} @ {row['ts']}: {exc}"
-            )
+            logger.warning("Failed to load checkin batch %d: %s", i, exc)
+            result.errors.append(f"Checkin batch starting at row {i}: {exc}")
 
     return result
 
 
 def load_payments(db: Session, gym_id: str, rows: list[dict]) -> LoadResult:
-    """Insert payments, linking by member email.
+    """Insert payments in bulk batches, linking by member email.
 
     Skips rows whose member_email doesn't match an existing member.
     """
@@ -160,37 +155,42 @@ def load_payments(db: Session, gym_id: str, rows: list[dict]) -> LoadResult:
     emails = {row["member_email"] for row in rows}
     email_to_id = _resolve_member_ids(db, gym_id, emails)
 
+    # Separate valid rows from skipped
+    valid_rows = []
     for row in rows:
         member_id = email_to_id.get(row["member_email"])
         if not member_id:
             result.skipped += 1
-            result.errors.append(
-                f"Member not found: {row['member_email']}"
-            )
+            result.errors.append(f"Member not found: {row['member_email']}")
             continue
+        valid_rows.append({**row, "_member_id": member_id})
 
+    # Bulk insert in batches
+    for i in range(0, len(valid_rows), BATCH_SIZE_ROWS):
+        batch = valid_rows[i : i + BATCH_SIZE_ROWS]
         try:
-            db.execute(
-                text(
-                    "INSERT INTO payments "
-                    "(gym_id, member_id, due_date, paid_at, amount, status) "
-                    "VALUES (:gym_id, :member_id, :due_date, :paid_at, :amount, :status)"
-                ),
-                {
-                    "gym_id": gym_id,
-                    "member_id": member_id,
-                    "due_date": row["due_date"],
-                    "paid_at": row.get("paid_at"),
-                    "amount": row["amount"],
-                    "status": row["status"],
-                },
+            values_parts = []
+            params: dict = {"gym_id": gym_id}
+            for j, row in enumerate(batch):
+                values_parts.append(
+                    f"(:gym_id, :mid_{j}, :due_{j}, :paid_{j}, :amt_{j}, :st_{j})"
+                )
+                params[f"mid_{j}"] = row["_member_id"]
+                params[f"due_{j}"] = row["due_date"]
+                params[f"paid_{j}"] = row.get("paid_at")
+                params[f"amt_{j}"] = row["amount"]
+                params[f"st_{j}"] = row["status"]
+
+            sql = (
+                "INSERT INTO payments "
+                "(gym_id, member_id, due_date, paid_at, amount, status) "
+                f"VALUES {', '.join(values_parts)}"
             )
-            result.inserted += 1
+            db.execute(text(sql), params)
+            result.inserted += len(batch)
         except Exception as exc:
-            logger.warning("Failed to load payment row: %s", exc)
-            result.errors.append(
-                f"Payment {row['member_email']} @ {row['due_date']}: {exc}"
-            )
+            logger.warning("Failed to load payment batch %d: %s", i, exc)
+            result.errors.append(f"Payment batch starting at row {i}: {exc}")
 
     return result
 

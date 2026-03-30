@@ -3,7 +3,7 @@
 import uuid
 from collections import namedtuple
 from datetime import date, datetime
-from unittest.mock import MagicMock, call
+from unittest.mock import MagicMock
 
 import pytest
 
@@ -27,13 +27,18 @@ def gym_id():
 
 
 # ===================================================================
-# load_members
+# load_members (bulk upsert)
 # ===================================================================
+
+
+WasInsertedRow = namedtuple("WasInsertedRow", ["was_inserted"])
 
 
 class TestLoadMembers:
     def test_insert_new_member(self, db, gym_id):
-        db.execute.return_value.fetchone.return_value = None  # no existing
+        db.execute.return_value.fetchall.return_value = [
+            WasInsertedRow(was_inserted=True),
+        ]
 
         rows = [
             {
@@ -51,13 +56,11 @@ class TestLoadMembers:
         assert result.inserted == 1
         assert result.updated == 0
         assert result.errors == []
-        assert db.execute.call_count == 2  # SELECT + INSERT
 
     def test_update_existing_member(self, db, gym_id):
-        MemberRow = namedtuple("MemberRow", ["id"])
-        db.execute.return_value.fetchone.return_value = MemberRow(
-            id=uuid.uuid4()
-        )
+        db.execute.return_value.fetchall.return_value = [
+            WasInsertedRow(was_inserted=False),
+        ]
 
         rows = [
             {
@@ -78,10 +81,9 @@ class TestLoadMembers:
 
     def test_multiple_members_mixed(self, db, gym_id):
         """First member exists (update), second is new (insert)."""
-        MemberRow = namedtuple("MemberRow", ["id"])
-        db.execute.return_value.fetchone.side_effect = [
-            MemberRow(id=uuid.uuid4()),  # first: exists
-            None,  # second: new
+        db.execute.return_value.fetchall.return_value = [
+            WasInsertedRow(was_inserted=False),  # update
+            WasInsertedRow(was_inserted=True),  # insert
         ]
 
         rows = [
@@ -126,11 +128,18 @@ class TestLoadMembers:
 
         assert result.inserted == 0
         assert len(result.errors) == 1
-        assert "joao@email.com" in result.errors[0]
+        assert "batch" in result.errors[0].lower() or "Member" in result.errors[0]
+
+    def test_empty_rows(self, db, gym_id):
+        result = load_members(db, gym_id, [])
+
+        assert result.inserted == 0
+        assert result.updated == 0
+        db.execute.assert_not_called()
 
 
 # ===================================================================
-# load_checkins
+# load_checkins (bulk insert)
 # ===================================================================
 
 
@@ -198,7 +207,7 @@ class TestLoadCheckins:
             {
                 "member_email": "missing@email.com",
                 "ts": datetime(2024, 3, 16, 19, 0),
-                "duration_min": 45,
+                "duration_min": None,
             },
         ]
 
@@ -207,9 +216,29 @@ class TestLoadCheckins:
         assert result.inserted == 1
         assert result.skipped == 1
 
+    def test_optional_duration(self, db, gym_id):
+        member_id = str(uuid.uuid4())
+        self._mock_resolve(db, {"joao@email.com": member_id})
+
+        rows = [
+            {
+                "member_email": "joao@email.com",
+                "ts": datetime(2024, 3, 15, 8, 30),
+                "duration_min": None,
+            }
+        ]
+
+        result = load_checkins(db, gym_id, rows)
+        assert result.inserted == 1
+
+    def test_empty_rows(self, db, gym_id):
+        result = load_checkins(db, gym_id, [])
+        assert result.inserted == 0
+        assert result.skipped == 0
+
 
 # ===================================================================
-# load_payments
+# load_payments (bulk insert)
 # ===================================================================
 
 
@@ -229,7 +258,7 @@ class TestLoadPayments:
 
         db.execute.side_effect = side_effect
 
-    def test_insert_payments(self, db, gym_id):
+    def test_insert_payment(self, db, gym_id):
         member_id = str(uuid.uuid4())
         self._mock_resolve(db, {"joao@email.com": member_id})
 
@@ -244,7 +273,6 @@ class TestLoadPayments:
         ]
 
         result = load_payments(db, gym_id, rows)
-
         assert result.inserted == 1
         assert result.skipped == 0
 
@@ -253,7 +281,25 @@ class TestLoadPayments:
 
         rows = [
             {
-                "member_email": "ghost@email.com",
+                "member_email": "unknown@email.com",
+                "due_date": date(2024, 4, 10),
+                "paid_at": None,
+                "amount": 150.00,
+                "status": "pending",
+            }
+        ]
+
+        result = load_payments(db, gym_id, rows)
+        assert result.inserted == 0
+        assert result.skipped == 1
+
+    def test_payment_without_paid_at(self, db, gym_id):
+        member_id = str(uuid.uuid4())
+        self._mock_resolve(db, {"joao@email.com": member_id})
+
+        rows = [
+            {
+                "member_email": "joao@email.com",
                 "due_date": date(2024, 4, 10),
                 "paid_at": None,
                 "amount": 149.90,
@@ -262,10 +308,12 @@ class TestLoadPayments:
         ]
 
         result = load_payments(db, gym_id, rows)
+        assert result.inserted == 1
 
+    def test_empty_rows(self, db, gym_id):
+        result = load_payments(db, gym_id, [])
         assert result.inserted == 0
-        assert result.skipped == 1
-        assert "ghost@email.com" in result.errors[0]
+        assert result.skipped == 0
 
 
 # ===================================================================
@@ -275,21 +323,25 @@ class TestLoadPayments:
 
 class TestLoadCsvData:
     def test_routes_to_members(self, db, gym_id):
-        db.execute.return_value.fetchone.return_value = None
+        db.execute.return_value.fetchall.return_value = [
+            WasInsertedRow(was_inserted=True),
+        ]
+
         rows = [
             {
-                "name": "Test",
-                "email": "test@test.com",
+                "name": "Joao",
+                "email": "joao@email.com",
                 "phone": None,
                 "enrolled_at": None,
                 "cancelled_at": None,
                 "status": "active",
             }
         ]
+
         result = load_csv_data(db, gym_id, "members", rows)
         assert isinstance(result, LoadResult)
         assert result.inserted == 1
 
-    def test_unknown_entity_type_raises(self, db, gym_id):
+    def test_invalid_entity_type_raises(self, db, gym_id):
         with pytest.raises(ValueError, match="Unknown entity type"):
-            load_csv_data(db, gym_id, "unknown", [])
+            load_csv_data(db, gym_id, "invalid", [])

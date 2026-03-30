@@ -40,6 +40,7 @@ CREATE TABLE members (
 
 CREATE INDEX idx_members_gym_id ON members(gym_id);
 CREATE INDEX idx_members_gym_status ON members(gym_id, status);
+CREATE UNIQUE INDEX idx_members_gym_email ON members(gym_id, email);
 
 CREATE TABLE checkins (
     id          UUID NOT NULL DEFAULT gen_random_uuid(),
