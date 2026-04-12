@@ -97,6 +97,16 @@ _(nada em teste)_
 
 ## TODO
 
+### 🔴 PRIORIDADE MÁXIMA — Migração Backend → NestJS (backend_v2)
+
+- [ ] Fase 0: Scaffolding NestJS + infra (branch: chore/backend-v2-scaffolding)
+- [ ] Fase 1: Domain layer + TypeORM entities (branch: feat/backend-v2-domain)
+- [ ] Fase 2: Scoring engine + testes (branch: feat/backend-v2-scoring)
+- [ ] Fase 3: Import CSV pipeline + testes (branch: feat/backend-v2-import)
+- [ ] Fase 4: API controllers + DTOs + Swagger (branch: feat/backend-v2-controllers)
+- [ ] Fase 5: Scheduled jobs com @nestjs/schedule (branch: feat/backend-v2-jobs)
+- [ ] Fase 6: Testes E2E + Docker + atualizar commands (branch: feat/backend-v2-e2e-docker)
+
 ### Refactor — Import Wizard (pós REVIEW-007)
 
 #### DRY: Extrair componente compartilhado de upload CSV
