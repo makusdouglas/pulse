@@ -61,6 +61,25 @@ services:
       redis:
         condition: service_healthy
 
+  api_v2:
+    build:
+      context: ./backend_v2
+      dockerfile: Dockerfile
+    ports:
+      - "8001:8000"
+    env_file:
+      - .env.shared
+      - .env.backend
+    environment:
+      DATABASE_URL: postgresql://churn:churn123@db:5432/churndb
+      REDIS_URL: redis://redis:6379/0
+      APP_PORT: "8000"
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
   frontend:
     build:
       context: ./frontend
