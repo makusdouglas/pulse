@@ -1,0 +1,8 @@
+export { GymEntity } from './gym.entity';
+export { MemberEntity } from './member.entity';
+export { CheckinEntity } from './checkin.entity';
+export { PaymentEntity } from './payment.entity';
+export { MemberFeaturesEntity } from './member-features.entity';
+export { ChurnScoreEntity } from './churn-score.entity';
+export { ActionEntity } from './action.entity';
+export { NotificationEntity } from './notification.entity';
