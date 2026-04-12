@@ -22,13 +22,13 @@ Based on the task content, classify it into one or more categories and build the
 
 | Category | Keywords in task | Agent pipeline |
 |---|---|---|
-| Database | schema.sql, migrations, hypertable, seed | `/db` → `/test` → `/arch` |
-| API endpoint | routes/, endpoint, GET, POST, config.py, auth.py, main.py, database.py | `/api` → `/test` → `/security` → `/arch` |
-| Scoring engine | scoring/, rules.py, features.py, calcular_score | `/score` → `/test` → `/arch` |
-| Celery jobs | tasks/, celery, job, beat, worker | `/tasks` → `/test` → `/arch` |
-| CSV import | importacao/, parser, loader, CSV, upload | `/import` → `/test` → `/security` → `/arch` |
+| Database | TypeORM entities, migrations, hypertable, seed | `/db` → `/test` → `/arch` |
+| API endpoint | controllers/, endpoint, GET, POST, DTOs, Swagger | `/api` → `/test` → `/security` → `/arch` |
+| Scoring engine | scoring/, calculate-score, features, ChurnSignals | `/score` → `/test` → `/arch` |
+| Scheduled jobs | jobs/, @Cron, feature-extraction, scoring | `/tasks` → `/test` → `/arch` |
+| CSV import | import/, parse-csv, load-csv, csv-parse | `/import` → `/test` → `/security` → `/arch` |
 | Frontend | frontend/, screen, component, layout, sidebar | `/frontend` → `/test` → `/arch` |
-| Infra/DevOps | docker, Dockerfile, .env, Makefile, .gitignore, requirements, pyproject | `/devops` → `/arch` |
+| Infra/DevOps | docker, Dockerfile, .env, Makefile, package.json | `/devops` → `/arch` |
 | ML | ml/, dataset, train, SHAP, retrain | `/ml` → `/test` → `/arch` |
 | Security audit | security, audit, rate limit, IDOR | `/security` → `/test` |
 

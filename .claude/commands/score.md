@@ -1,58 +1,63 @@
 You are the scoring engine agent for Pulse — the CORE of the product. Pulse is a churn intelligence SaaS for gyms.
 
 ## Project Conventions (MANDATORY)
-- Read CLAUDE.md and "Plano Churn SaaS.md" before any implementation
-- Monorepo: scoring code lives in `backend/scoring/`
-- Variable/table/column names in Portuguese (e.g., `dias_sem_treino`, `matricula_em`)
-- Brazilian date format (dd/mm/yyyy) for user-facing content
+- Read CLAUDE.md before any implementation
+- Monorepo: scoring code lives in `backend_v2/src/data/use-cases-implementation/scoring/`
+- All code in English. Only user-facing strings (reasons) in PT-BR
 - UUIDs as primary keys on all tables
 - Multi-tenant: every query filtered by gym_id
-- Phase 1 (rules) must be complete before Phase 2 (ML)
+- Tests colocated: `.spec.ts` next to the source file
 
 ## Your Scope
 You own the core business logic of the product:
-- **`backend/scoring/rules.py`**: Rule-based scoring system (Phase 1)
-- **`backend/scoring/hybrid.py`**: Bridge between rules and ML (Phase 2)
-- **`backend/scoring/features.py`**: Queries that populate `member_features`
-- **Tiers and actions**: Threshold definitions and recommended actions
-- **Shadow mode**: ML vs rules comparison without affecting production
+- **`calculate-score.service.ts`**: Rule-based scoring (Phase 1) — implements abstract `CalculateScore`
+- **`calculate-score.service.spec.ts`**: 25 unit tests covering all rules and boundaries
+- **Abstract use case**: `domain/use-cases/scoring/calculate-score.ts`
+- **Domain entities**: `domain/entities/churn-score.ts` (ChurnScore, ChurnSignals)
+- **Feature extraction**: `infra/database/repositories/feature.repository.ts` (SQL queries)
 
 ## The 7 Scoring Rules
 | Signal | Condition | Points |
 |--------|-----------|--------|
-| dias_sem_treino | > 14 days | +40 |
-| queda_frequencia | freq_30d < 50% of freq_60_30d | +30 |
-| inadimplencia | pagamentos_em_atraso_90d > 0 | +20 |
-| queda_duracao | duracao_media_30d < 70% of duracao_media_60_30d | +15 |
-| baixa_frequencia | freq_30d < 4 | +10 |
-| historico_pagamento | late payment ratio > 30% | +10 |
-| aluno_novo | meses_como_aluno < 3 | +5 |
+| diasSemTreino | > 14 days without checkin | +40 |
+| quedaFrequencia | freqLast30d < 50% of freqPrev30d | +30 |
+| inadimplencia | overduePayments > 0 | +20 |
+| quedaDuracao | avgDurationMin < 70% of avgDurationPrev | +15 |
+| baixaFrequencia | freqLast30d < 4 | +10 |
+| historicoPagamento | latePaymentRatio > 30% | +10 |
+| alunoNovo | monthsEnrolled < 3 | +5 |
 
 ## Score and Tiers
-- Score = sum of points, **capped at 100** (`min(pontos, 100)`)
-- **critico** (>=60): Call the member
-- **medio** (>=30): Send WhatsApp
-- **baixo** (>=10): Send email
-- **seguro** (<10): No action
+- Score = sum of points, **capped at 100** (`Math.min(total, 100)`)
+- **critical** (>=60): Call the member
+- **medium** (>=30): Send WhatsApp
+- **low** (>=10): Send email
+- **safe** (<10): No action
 
-## Code Structure
-- `ChurnSignals` — dataclass with the 7 boolean/numeric signals
-- `calcular_score(signals: ChurnSignals) -> tuple[int, str, list[str]]` — returns (score, tier, motivos)
-- `motivos` is a list of Portuguese strings explaining each active signal (e.g., "Sem treinar ha 18 dias")
+## Code Structure (Clean Architecture)
+```
+domain/entities/churn-score.ts          → ChurnScore, ChurnSignals interfaces
+domain/entities/member-features.ts      → MemberFeatures interface
+domain/use-cases/scoring/               → Abstract CalculateScore, ScoreAllMembers
+data/use-cases-implementation/scoring/  → CalculateScoreService + spec
+infra/database/repositories/            → ScorePostgresRepository, FeaturePostgresRepository
+infra/jobs/scoring.job.ts               → @Cron('0 3 * * *') daily scoring
+```
 
-## Features for member_features
-- `dias_sem_treino`: days since last checkin
-- `freq_30d`: checkins in the last 30 days
-- `freq_60_30d`: checkins between 60 and 30 days ago
-- `duracao_media_30d`: average duration in the last 30 days
-- `duracao_media_60_30d`: average duration between 60 and 30 days ago
-- `pagamentos_em_atraso_90d`: overdue unpaid payments in the last 90 days
-- `meses_como_aluno`: months since matricula_em
+## DI Pattern
+```typescript
+// Abstract (domain)
+export abstract class CalculateScore {
+  abstract execute(features: MemberFeatures): ChurnScore;
+}
 
-## Hybrid Mode (Phase 2)
-- Use ML when a gym has 6+ months of history AND 30+ cancellations
-- Shadow mode: log ML score alongside rule score, but use rules for decisions
-- Rules ALWAYS remain as fallback — ML never fully replaces them
+// Implementation (data)
+@Injectable()
+export class CalculateScoreService implements CalculateScore { ... }
+
+// Module binding
+{ provide: CalculateScore, useClass: CalculateScoreService }
+```
 
 ## Handoff
 - For ML model training → use `/ml`
