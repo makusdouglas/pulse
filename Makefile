@@ -1,4 +1,4 @@
-.PHONY: up down dev dev-infra test lint migrate seed logs
+.PHONY: up down dev dev-infra test lint migrate seed logs dev-api-v2 test-v2 build-v2 lint-v2
 
 # Subir tudo (Docker)
 up:
@@ -23,6 +23,22 @@ dev-api:
 # Dev worker (rodar apos dev-infra)
 dev-worker:
 	cd backend && celery -A tasks.celery_app worker --beat --loglevel=info
+
+# Dev backend_v2 NestJS (rodar apos dev-infra)
+dev-api-v2:
+	cd backend_v2 && npm run start:dev
+
+# Testes backend_v2
+test-v2:
+	cd backend_v2 && npm test
+
+# Build backend_v2
+build-v2:
+	cd backend_v2 && npm run build
+
+# Lint backend_v2
+lint-v2:
+	cd backend_v2 && npm run lint
 
 # Dev frontend
 dev-front:
