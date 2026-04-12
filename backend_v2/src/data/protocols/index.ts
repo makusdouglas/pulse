@@ -1,0 +1,8 @@
+export { MemberRepository } from './member-repository';
+export { GymRepository } from './gym-repository';
+export { ScoreRepository } from './score-repository';
+export { FeatureRepository } from './feature-repository';
+export { PaymentRepository } from './payment-repository';
+export { ActionRepository } from './action-repository';
+export { NotificationRepository } from './notification-repository';
+export { ImportRepository } from './import-repository';
