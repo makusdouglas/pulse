@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ENV } from '../config/env';
+import { RepositoriesModule } from './repositories/repositories.module';
 
 @Module({
   imports: [
@@ -11,7 +12,8 @@ import { ENV } from '../config/env';
       synchronize: false,
       logging: process.env.NODE_ENV !== 'production',
     }),
+    RepositoriesModule,
   ],
-  exports: [TypeOrmModule],
+  exports: [TypeOrmModule, RepositoriesModule],
 })
 export class DatabaseModule {}
