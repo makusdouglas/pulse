@@ -3,8 +3,6 @@ export const ENV = {
     process.env.DATABASE_URL ??
     'postgresql://churn:churn123@localhost:5432/churndb',
 
-  REDIS_URL: process.env.REDIS_URL ?? 'redis://localhost:6379/0',
-
   CLERK_SECRET_KEY: process.env.CLERK_SECRET_KEY ?? '',
   CLERK_JWKS_URL: process.env.CLERK_JWKS_URL ?? '',
 
