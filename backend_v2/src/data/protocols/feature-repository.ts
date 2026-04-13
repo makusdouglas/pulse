@@ -15,5 +15,8 @@ export interface UpsertFeatureParams {
 export abstract class FeatureRepository {
   abstract upsert(params: UpsertFeatureParams): Promise<void>;
   abstract extractAll(gymId: string): Promise<MemberFeatures[]>;
-  abstract extractOne(gymId: string, memberId: string): Promise<MemberFeatures | null>;
+  abstract extractOne(
+    gymId: string,
+    memberId: string,
+  ): Promise<MemberFeatures | null>;
 }

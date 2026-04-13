@@ -41,10 +41,22 @@ export class MemberFeaturesEntity {
   @Column({ name: 'freq_prev_30d', type: 'int', default: 0 })
   freqPrev30d: number;
 
-  @Column({ name: 'freq_trend', type: 'numeric', precision: 5, scale: 2, default: 0 })
+  @Column({
+    name: 'freq_trend',
+    type: 'numeric',
+    precision: 5,
+    scale: 2,
+    default: 0,
+  })
   freqTrend: number;
 
-  @Column({ name: 'avg_duration_min', type: 'numeric', precision: 5, scale: 1, nullable: true })
+  @Column({
+    name: 'avg_duration_min',
+    type: 'numeric',
+    precision: 5,
+    scale: 1,
+    nullable: true,
+  })
   avgDurationMin: number | null;
 
   @Column({ name: 'overdue_payments', type: 'int', default: 0 })

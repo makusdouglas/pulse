@@ -15,8 +15,5 @@ export interface CommitResponse {
 }
 
 export abstract class CommitImport {
-  abstract execute(
-    gymId: string,
-    data: CommitRequest,
-  ): Promise<CommitResponse>;
+  abstract execute(gymId: string, data: CommitRequest): Promise<CommitResponse>;
 }

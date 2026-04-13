@@ -1,5 +1,10 @@
 import { Controller, Get, Req, UseGuards } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 import type { Request } from 'express';
 import { ClerkAuthGuard } from '../../../infra/auth/clerk-auth.guard';
 import { MemberRepository } from '../../../data/protocols/member-repository';
@@ -24,7 +29,12 @@ export class DashboardController {
     const [totalResult, activeResult, tierCounts, avgScore, recentScores] =
       await Promise.all([
         this.memberRepo.findByGym({ gymId, page: 1, pageSize: 1 }),
-        this.memberRepo.findByGym({ gymId, page: 1, pageSize: 1, status: 'active' as any }),
+        this.memberRepo.findByGym({
+          gymId,
+          page: 1,
+          pageSize: 1,
+          status: 'active' as any,
+        }),
         this.scoreRepo.getTierCounts(gymId),
         this.scoreRepo.getAvgScore(gymId),
         this.scoreRepo.getRecentScores(gymId, 10),

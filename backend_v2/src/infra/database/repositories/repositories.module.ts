@@ -45,7 +45,10 @@ import { NotificationPostgresRepository } from './notification.repository';
     { provide: FeatureRepository, useClass: FeaturePostgresRepository },
     { provide: PaymentRepository, useClass: PaymentPostgresRepository },
     { provide: ActionRepository, useClass: ActionPostgresRepository },
-    { provide: NotificationRepository, useClass: NotificationPostgresRepository },
+    {
+      provide: NotificationRepository,
+      useClass: NotificationPostgresRepository,
+    },
   ],
   exports: [
     GymRepository,

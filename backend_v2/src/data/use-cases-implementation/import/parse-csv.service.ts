@@ -6,11 +6,20 @@ import {
   ParseError,
   EntityType,
 } from '../../../domain/use-cases/import/parse-csv';
-import { parseDate, parseDateTime, validateEmail } from '../../helpers/date-parser';
+import {
+  parseDate,
+  parseDateTime,
+  validateEmail,
+} from '../../helpers/date-parser';
 
 const MEMBER_COLUMNS = new Set(['nome', 'email', 'telefone', 'matricula_em']);
 const CHECKIN_COLUMNS = new Set(['email_aluno', 'data_hora']);
-const PAYMENT_COLUMNS = new Set(['email_aluno', 'vencimento', 'valor', 'status']);
+const PAYMENT_COLUMNS = new Set([
+  'email_aluno',
+  'vencimento',
+  'valor',
+  'status',
+]);
 
 const ENTITY_REQUIRED_COLUMNS: Record<EntityType, Set<string>> = {
   members: MEMBER_COLUMNS,
@@ -115,23 +124,40 @@ export class ParseCsvService implements ParseCsv {
     const enrolledRaw = clean(row['matricula_em']);
     const cancelledRaw = clean(row['cancelamento_em']);
 
-    if (!name) errors.push({ row: rowNum, field: 'nome', message: 'Name is required' });
+    if (!name)
+      errors.push({ row: rowNum, field: 'nome', message: 'Name is required' });
     if (!email) {
-      errors.push({ row: rowNum, field: 'email', message: 'Email is required' });
+      errors.push({
+        row: rowNum,
+        field: 'email',
+        message: 'Email is required',
+      });
     } else if (!validateEmail(email)) {
-      errors.push({ row: rowNum, field: 'email', message: `Invalid email: ${email}` });
+      errors.push({
+        row: rowNum,
+        field: 'email',
+        message: `Invalid email: ${email}`,
+      });
     }
 
     const enrolledAt = enrolledRaw ? parseDate(enrolledRaw) : null;
     if (enrolledRaw && !enrolledAt) {
-      errors.push({ row: rowNum, field: 'matricula_em', message: `Invalid date: ${enrolledRaw}` });
+      errors.push({
+        row: rowNum,
+        field: 'matricula_em',
+        message: `Invalid date: ${enrolledRaw}`,
+      });
     }
 
     let cancelledAt: Date | null = null;
     if (cancelledRaw) {
       cancelledAt = parseDate(cancelledRaw);
       if (!cancelledAt) {
-        errors.push({ row: rowNum, field: 'cancelamento_em', message: `Invalid date: ${cancelledRaw}` });
+        errors.push({
+          row: rowNum,
+          field: 'cancelamento_em',
+          message: `Invalid date: ${cancelledRaw}`,
+        });
       }
     }
 
@@ -160,18 +186,34 @@ export class ParseCsvService implements ParseCsv {
     const durationRaw = clean(row['duracao_min']);
 
     if (!email) {
-      errors.push({ row: rowNum, field: 'email_aluno', message: 'Email is required' });
+      errors.push({
+        row: rowNum,
+        field: 'email_aluno',
+        message: 'Email is required',
+      });
     } else if (!validateEmail(email)) {
-      errors.push({ row: rowNum, field: 'email_aluno', message: `Invalid email: ${email}` });
+      errors.push({
+        row: rowNum,
+        field: 'email_aluno',
+        message: `Invalid email: ${email}`,
+      });
     }
 
     let ts: Date | null = null;
     if (!tsRaw) {
-      errors.push({ row: rowNum, field: 'data_hora', message: 'Timestamp is required' });
+      errors.push({
+        row: rowNum,
+        field: 'data_hora',
+        message: 'Timestamp is required',
+      });
     } else {
       ts = parseDateTime(tsRaw);
       if (!ts) {
-        errors.push({ row: rowNum, field: 'data_hora', message: `Invalid datetime: ${tsRaw}` });
+        errors.push({
+          row: rowNum,
+          field: 'data_hora',
+          message: `Invalid datetime: ${tsRaw}`,
+        });
       }
     }
 
@@ -179,9 +221,17 @@ export class ParseCsvService implements ParseCsv {
     if (durationRaw) {
       const parsed = parseInt(durationRaw, 10);
       if (isNaN(parsed)) {
-        errors.push({ row: rowNum, field: 'duracao_min', message: `Invalid duration: ${durationRaw}` });
+        errors.push({
+          row: rowNum,
+          field: 'duracao_min',
+          message: `Invalid duration: ${durationRaw}`,
+        });
       } else if (parsed <= 0) {
-        errors.push({ row: rowNum, field: 'duracao_min', message: 'Duration must be > 0' });
+        errors.push({
+          row: rowNum,
+          field: 'duracao_min',
+          message: 'Duration must be > 0',
+        });
       } else {
         durationMin = parsed;
       }
@@ -211,18 +261,34 @@ export class ParseCsvService implements ParseCsv {
     const statusRaw = clean(row['status']).toLowerCase();
 
     if (!email) {
-      errors.push({ row: rowNum, field: 'email_aluno', message: 'Email is required' });
+      errors.push({
+        row: rowNum,
+        field: 'email_aluno',
+        message: 'Email is required',
+      });
     } else if (!validateEmail(email)) {
-      errors.push({ row: rowNum, field: 'email_aluno', message: `Invalid email: ${email}` });
+      errors.push({
+        row: rowNum,
+        field: 'email_aluno',
+        message: `Invalid email: ${email}`,
+      });
     }
 
     let dueDate: Date | null = null;
     if (!dueDateRaw) {
-      errors.push({ row: rowNum, field: 'vencimento', message: 'Due date is required' });
+      errors.push({
+        row: rowNum,
+        field: 'vencimento',
+        message: 'Due date is required',
+      });
     } else {
       dueDate = parseDate(dueDateRaw);
       if (!dueDate) {
-        errors.push({ row: rowNum, field: 'vencimento', message: `Invalid date: ${dueDateRaw}` });
+        errors.push({
+          row: rowNum,
+          field: 'vencimento',
+          message: `Invalid date: ${dueDateRaw}`,
+        });
       }
     }
 
@@ -230,19 +296,35 @@ export class ParseCsvService implements ParseCsv {
     if (paidAtRaw) {
       paidAt = parseDate(paidAtRaw);
       if (!paidAt) {
-        errors.push({ row: rowNum, field: 'pago_em', message: `Invalid date: ${paidAtRaw}` });
+        errors.push({
+          row: rowNum,
+          field: 'pago_em',
+          message: `Invalid date: ${paidAtRaw}`,
+        });
       }
     }
 
     let amount: number | null = null;
     if (!amountRaw) {
-      errors.push({ row: rowNum, field: 'valor', message: 'Amount is required' });
+      errors.push({
+        row: rowNum,
+        field: 'valor',
+        message: 'Amount is required',
+      });
     } else {
       amount = parseFloat(amountRaw.replace(',', '.'));
       if (isNaN(amount)) {
-        errors.push({ row: rowNum, field: 'valor', message: `Invalid amount: ${amountRaw}` });
+        errors.push({
+          row: rowNum,
+          field: 'valor',
+          message: `Invalid amount: ${amountRaw}`,
+        });
       } else if (amount <= 0) {
-        errors.push({ row: rowNum, field: 'valor', message: 'Amount must be > 0' });
+        errors.push({
+          row: rowNum,
+          field: 'valor',
+          message: 'Amount must be > 0',
+        });
       }
     }
 

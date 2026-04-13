@@ -13,8 +13,5 @@ export interface ParseResult {
 export type EntityType = 'members' | 'checkins' | 'payments';
 
 export abstract class ParseCsv {
-  abstract execute(
-    file: Buffer,
-    entityType: EntityType,
-  ): Promise<ParseResult>;
+  abstract execute(file: Buffer, entityType: EntityType): Promise<ParseResult>;
 }

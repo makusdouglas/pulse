@@ -13,6 +13,11 @@ export interface PaymentWithMember {
 export abstract class PaymentRepository {
   abstract findByGym(
     gymId: string,
-    filters: { memberId?: string; status?: PaymentStatus; page: number; pageSize: number },
+    filters: {
+      memberId?: string;
+      status?: PaymentStatus;
+      page: number;
+      pageSize: number;
+    },
   ): Promise<{ payments: PaymentWithMember[]; total: number }>;
 }

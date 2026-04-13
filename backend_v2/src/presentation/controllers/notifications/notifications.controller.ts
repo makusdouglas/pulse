@@ -1,5 +1,19 @@
-import { Controller, Get, Param, Put, Query, Req, UseGuards, HttpCode } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import {
+  Controller,
+  Get,
+  Param,
+  Put,
+  Query,
+  Req,
+  UseGuards,
+  HttpCode,
+} from '@nestjs/common';
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 import type { Request } from 'express';
 import { ClerkAuthGuard } from '../../../infra/auth/clerk-auth.guard';
 import { NotificationRepository } from '../../../data/protocols/notification-repository';

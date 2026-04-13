@@ -12,7 +12,12 @@ export class PaymentPostgresRepository implements PaymentRepository {
 
   async findByGym(
     gymId: string,
-    filters: { memberId?: string; status?: PaymentStatus; page: number; pageSize: number },
+    filters: {
+      memberId?: string;
+      status?: PaymentStatus;
+      page: number;
+      pageSize: number;
+    },
   ): Promise<{ payments: PaymentWithMember[]; total: number }> {
     const conditions = ['p.gym_id = $1'];
     const params: unknown[] = [gymId];

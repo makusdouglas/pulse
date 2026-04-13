@@ -17,7 +17,11 @@ export class NotificationPostgresRepository implements NotificationRepository {
     gymId: string,
     page: number,
     pageSize: number,
-  ): Promise<{ notifications: Notification[]; total: number; unreadCount: number }> {
+  ): Promise<{
+    notifications: Notification[];
+    total: number;
+    unreadCount: number;
+  }> {
     const [entities, total] = await this.repo.findAndCount({
       where: { gymId },
       order: { createdAt: 'DESC' },
@@ -37,10 +41,7 @@ export class NotificationPostgresRepository implements NotificationRepository {
   }
 
   async markRead(gymId: string, notificationId: string): Promise<void> {
-    await this.repo.update(
-      { id: notificationId, gymId },
-      { isRead: true },
-    );
+    await this.repo.update({ id: notificationId, gymId }, { isRead: true });
   }
 
   async markAllRead(gymId: string): Promise<void> {

@@ -8,8 +8,5 @@ export interface UpdateGymSettingsInput {
 }
 
 export abstract class UpdateGymSettings {
-  abstract execute(
-    gymId: string,
-    input: UpdateGymSettingsInput,
-  ): Promise<Gym>;
+  abstract execute(gymId: string, input: UpdateGymSettingsInput): Promise<Gym>;
 }

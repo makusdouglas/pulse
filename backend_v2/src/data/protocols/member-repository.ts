@@ -17,5 +17,8 @@ export interface ListMembersResult {
 export abstract class MemberRepository {
   abstract findByGym(params: ListMembersParams): Promise<ListMembersResult>;
   abstract findById(gymId: string, memberId: string): Promise<Member | null>;
-  abstract findEmailMap(gymId: string, emails: string[]): Promise<Map<string, string>>;
+  abstract findEmailMap(
+    gymId: string,
+    emails: string[],
+  ): Promise<Map<string, string>>;
 }

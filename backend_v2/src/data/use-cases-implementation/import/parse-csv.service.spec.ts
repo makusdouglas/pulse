@@ -121,10 +121,7 @@ describe('ParseCsvService', () => {
     });
 
     it('should report error for missing timestamp', async () => {
-      const file = csv([
-        'email_aluno,data_hora',
-        'joao@test.com,',
-      ]);
+      const file = csv(['email_aluno,data_hora', 'joao@test.com,']);
       const result = await service.execute(file, 'checkins');
       expect(result.errors).toHaveLength(1);
       expect(result.errors[0].field).toBe('data_hora');
@@ -149,10 +146,7 @@ describe('ParseCsvService', () => {
     });
 
     it('should parse date-only as midnight fallback', async () => {
-      const file = csv([
-        'email_aluno,data_hora',
-        'joao@test.com,15/03/2024',
-      ]);
+      const file = csv(['email_aluno,data_hora', 'joao@test.com,15/03/2024']);
       const result = await service.execute(file, 'checkins');
       expect(result.rows).toHaveLength(1);
       expect(result.rows[0]['ts']).toBeTruthy();
@@ -241,16 +235,16 @@ describe('ParseCsvService', () => {
   describe('column validation', () => {
     it('should throw for missing required columns', async () => {
       const file = csv(['nome,telefone', 'João,11999']);
-      await expect(
-        service.execute(file, 'members'),
-      ).rejects.toThrow('Missing required columns');
+      await expect(service.execute(file, 'members')).rejects.toThrow(
+        'Missing required columns',
+      );
     });
 
     it('should throw for invalid entity type', async () => {
       const file = csv(['col1', 'val1']);
-      await expect(
-        service.execute(file, 'invalid' as any),
-      ).rejects.toThrow('Invalid entity_type');
+      await expect(service.execute(file, 'invalid' as any)).rejects.toThrow(
+        'Invalid entity_type',
+      );
     });
   });
 
