@@ -9,6 +9,8 @@ import {
   ChurnScoreEntity,
   ActionEntity,
   NotificationEntity,
+  AdminUserEntity,
+  AdminSessionEntity,
 } from '../entities';
 import { GymRepository } from '../../../data/protocols/gym-repository';
 import { MemberRepository } from '../../../data/protocols/member-repository';
@@ -17,6 +19,8 @@ import { FeatureRepository } from '../../../data/protocols/feature-repository';
 import { PaymentRepository } from '../../../data/protocols/payment-repository';
 import { ActionRepository } from '../../../data/protocols/action-repository';
 import { NotificationRepository } from '../../../data/protocols/notification-repository';
+import { AdminUserRepository } from '../../../data/protocols/admin-user-repository';
+import { AdminSessionRepository } from '../../../data/protocols/admin-session-repository';
 import { GymPostgresRepository } from './gym.repository';
 import { MemberPostgresRepository } from './member.repository';
 import { ScorePostgresRepository } from './score.repository';
@@ -24,6 +28,8 @@ import { FeaturePostgresRepository } from './feature.repository';
 import { PaymentPostgresRepository } from './payment.repository';
 import { ActionPostgresRepository } from './action.repository';
 import { NotificationPostgresRepository } from './notification.repository';
+import { AdminUserPostgresRepository } from './admin-user.repository';
+import { AdminSessionPostgresRepository } from './admin-session.repository';
 
 @Module({
   imports: [
@@ -36,6 +42,8 @@ import { NotificationPostgresRepository } from './notification.repository';
       ChurnScoreEntity,
       ActionEntity,
       NotificationEntity,
+      AdminUserEntity,
+      AdminSessionEntity,
     ]),
   ],
   providers: [
@@ -49,6 +57,11 @@ import { NotificationPostgresRepository } from './notification.repository';
       provide: NotificationRepository,
       useClass: NotificationPostgresRepository,
     },
+    { provide: AdminUserRepository, useClass: AdminUserPostgresRepository },
+    {
+      provide: AdminSessionRepository,
+      useClass: AdminSessionPostgresRepository,
+    },
   ],
   exports: [
     GymRepository,
@@ -58,6 +71,8 @@ import { NotificationPostgresRepository } from './notification.repository';
     PaymentRepository,
     ActionRepository,
     NotificationRepository,
+    AdminUserRepository,
+    AdminSessionRepository,
   ],
 })
 export class RepositoriesModule {}

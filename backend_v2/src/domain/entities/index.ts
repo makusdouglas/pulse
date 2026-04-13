@@ -6,3 +6,5 @@ export * from './member-features';
 export * from './churn-score';
 export * from './action';
 export * from './notification';
+export * from './admin-user';
+export * from './admin-session';

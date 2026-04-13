@@ -8,6 +8,7 @@ import { ActionsControllersModule } from './actions/actions-controllers.module';
 import { NotificationsControllersModule } from './notifications/notifications-controllers.module';
 import { SettingsControllersModule } from './settings/settings-controllers.module';
 import { ImportControllersModule } from './import/import-controllers.module';
+import { AdminControllersModule } from './admin/admin-controllers.module';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { ImportControllersModule } from './import/import-controllers.module';
     NotificationsControllersModule,
     SettingsControllersModule,
     ImportControllersModule,
+    AdminControllersModule,
   ],
   controllers: [HealthController],
 })

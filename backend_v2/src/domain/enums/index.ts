@@ -4,3 +4,4 @@ export * from './tier.enum';
 export * from './notification-type.enum';
 export * from './action-channel.enum';
 export * from './score-origin.enum';
+export * from './admin-role.enum';
