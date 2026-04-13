@@ -1,0 +1,7 @@
+{
+  "admin_users": [
+    { "email": "admin@pulse.com", "password": "change-me", "role": "superadmin", "name": "Super Admin" },
+    { "email": "finance@pulse.com", "password": "change-me", "role": "finance", "name": "Finance Admin" },
+    { "email": "support@pulse.com", "password": "change-me", "role": "support", "name": "Support Admin" }
+  ]
+}

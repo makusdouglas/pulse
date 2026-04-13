@@ -1,0 +1,70 @@
+{
+  "organizations": [
+    {
+      "name": "Academia Teste",
+      "slug": "academia-teste",
+      "users": [
+        { "email": "admin@pulseapp.dev", "password": "Pulse@2024", "first_name": "Admin", "last_name": "Pulse", "role": "org:admin" },
+        { "email": "maria.silva@pulseapp.dev", "password": "Pulse@2024", "first_name": "Maria", "last_name": "Silva", "role": "org:admin" },
+        { "email": "joao.santos@pulseapp.dev", "password": "Pulse@2024", "first_name": "Joao", "last_name": "Santos", "role": "org:member" },
+        { "email": "ana.oliveira@pulseapp.dev", "password": "Pulse@2024", "first_name": "Ana", "last_name": "Oliveira", "role": "org:member" },
+        { "email": "carlos.lima@pulseapp.dev", "password": "Pulse@2024", "first_name": "Carlos", "last_name": "Lima", "role": "org:member" }
+      ]
+    },
+    {
+      "name": "Iron Fitness",
+      "slug": "iron-fitness",
+      "users": [
+        { "email": "ricardo.ferreira@pulseapp.dev", "password": "Pulse@2024", "first_name": "Ricardo", "last_name": "Ferreira", "role": "org:admin" },
+        { "email": "camila.almeida@pulseapp.dev", "password": "Pulse@2024", "first_name": "Camila", "last_name": "Almeida", "role": "org:admin" },
+        { "email": "bruno.nascimento@pulseapp.dev", "password": "Pulse@2024", "first_name": "Bruno", "last_name": "Nascimento", "role": "org:member" },
+        { "email": "tatiana.barbosa@pulseapp.dev", "password": "Pulse@2024", "first_name": "Tatiana", "last_name": "Barbosa", "role": "org:member" },
+        { "email": "diego.carvalho@pulseapp.dev", "password": "Pulse@2024", "first_name": "Diego", "last_name": "Carvalho", "role": "org:member" }
+      ]
+    },
+    {
+      "name": "CrossBox 360",
+      "slug": "crossbox-360",
+      "users": [
+        { "email": "marcos.teixeira@pulseapp.dev", "password": "Pulse@2024", "first_name": "Marcos", "last_name": "Teixeira", "role": "org:admin" },
+        { "email": "carolina.mendes@pulseapp.dev", "password": "Pulse@2024", "first_name": "Carolina", "last_name": "Mendes", "role": "org:admin" },
+        { "email": "felipe.cardoso@pulseapp.dev", "password": "Pulse@2024", "first_name": "Felipe", "last_name": "Cardoso", "role": "org:member" },
+        { "email": "gabriela.moreira@pulseapp.dev", "password": "Pulse@2024", "first_name": "Gabriela", "last_name": "Moreira", "role": "org:member" },
+        { "email": "andre.lopes@pulseapp.dev", "password": "Pulse@2024", "first_name": "Andre", "last_name": "Lopes", "role": "org:member" }
+      ]
+    },
+    {
+      "name": "Studio Vita",
+      "slug": "studio-vita",
+      "users": [
+        { "email": "daniel.vieira@pulseapp.dev", "password": "Pulse@2024", "first_name": "Daniel", "last_name": "Vieira", "role": "org:admin" },
+        { "email": "leticia.azevedo@pulseapp.dev", "password": "Pulse@2024", "first_name": "Leticia", "last_name": "Azevedo", "role": "org:admin" },
+        { "email": "marcelo.ramos@pulseapp.dev", "password": "Pulse@2024", "first_name": "Marcelo", "last_name": "Ramos", "role": "org:member" },
+        { "email": "bianca.cunha@pulseapp.dev", "password": "Pulse@2024", "first_name": "Bianca", "last_name": "Cunha", "role": "org:member" },
+        { "email": "victor.moura@pulseapp.dev", "password": "Pulse@2024", "first_name": "Victor", "last_name": "Moura", "role": "org:member" }
+      ]
+    },
+    {
+      "name": "Power Gym",
+      "slug": "power-gym",
+      "users": [
+        { "email": "leandro.borges@pulseapp.dev", "password": "Pulse@2024", "first_name": "Leandro", "last_name": "Borges", "role": "org:admin" },
+        { "email": "simone.aguiar@pulseapp.dev", "password": "Pulse@2024", "first_name": "Simone", "last_name": "Aguiar", "role": "org:admin" },
+        { "email": "fabio.rezende@pulseapp.dev", "password": "Pulse@2024", "first_name": "Fabio", "last_name": "Rezende", "role": "org:member" },
+        { "email": "cristiane.pires@pulseapp.dev", "password": "Pulse@2024", "first_name": "Cristiane", "last_name": "Pires", "role": "org:member" },
+        { "email": "alex.duarte@pulseapp.dev", "password": "Pulse@2024", "first_name": "Alex", "last_name": "Duarte", "role": "org:member" }
+      ]
+    },
+    {
+      "name": "FitZone Premium",
+      "slug": "fitzone-premium",
+      "users": [
+        { "email": "roberto.macedo@pulseapp.dev", "password": "Pulse@2024", "first_name": "Roberto", "last_name": "Macedo", "role": "org:admin" },
+        { "email": "cintia.barros@pulseapp.dev", "password": "Pulse@2024", "first_name": "Cintia", "last_name": "Barros", "role": "org:admin" },
+        { "email": "fernando.andrade@pulseapp.dev", "password": "Pulse@2024", "first_name": "Fernando", "last_name": "Andrade", "role": "org:member" },
+        { "email": "raquel.nogueira@pulseapp.dev", "password": "Pulse@2024", "first_name": "Raquel", "last_name": "Nogueira", "role": "org:member" },
+        { "email": "sergio.matos@pulseapp.dev", "password": "Pulse@2024", "first_name": "Sergio", "last_name": "Matos", "role": "org:member" }
+      ]
+    }
+  ]
+}

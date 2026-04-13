@@ -11,7 +11,7 @@ You own all project infrastructure:
 - **Docker Compose**: 3 services (db, api_v2, frontend)
 - **Dockerfiles**: `backend_v2/Dockerfile` (multi-stage Node 22) + `frontend/Dockerfile`
 - **Dependencies**: `backend_v2/package.json` (NestJS) and `frontend/package.json` (Next.js)
-- **Environment variables**: `.env.backend.example`, `.env.frontend.example`, `.env.shared.example`, `backend_v2/.env.example`
+- **Environment variables**: `backend_v2/.env.example`, `frontend/.env.example`
 - **Deploy**: Configuration for Railway or Render
 - **Makefile**: Commands for backend + frontend
 

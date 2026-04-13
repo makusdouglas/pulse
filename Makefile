@@ -1,4 +1,4 @@
-.PHONY: up down dev-infra dev-api dev-front test build lint logs rebuild prune seed-clerk seed-db setup migrate migrate-gen
+.PHONY: up down dev-infra dev-api dev-front test build lint logs rebuild prune seed seed-clerk seed-db setup migrate migrate-gen
 
 # Subir tudo (Docker)
 up:
@@ -56,21 +56,26 @@ rebuild:
 prune:
 	docker image prune -f
 
-# Seed Clerk orgs + users
+# Rodar todos os seeds (Clerk + DB)
+seed:
+	cd backend_v2 && npm run seed
+
+# Seed apenas Clerk orgs + users
 seed-clerk:
-	cd scripts && npx tsx seed-clerk.ts
+	cd backend_v2 && npm run seed:clerk
 
 # Sync Clerk orgs → banco local
 seed-db:
-	cd scripts && npx tsx seed-db.ts
+	cd backend_v2 && npm run seed:db
 
 # Setup completo: infra + migrations + seeds
 setup:
-	@echo "1/3  Subindo infra (DB)..."
+	@echo "1/4  Subindo infra (DB)..."
 	docker compose up -d db
-	@echo "2/3  Aguardando DB ficar healthy..."
+	@echo "2/4  Aguardando DB ficar healthy..."
 	@until docker compose exec db pg_isready -U churn -d churndb > /dev/null 2>&1; do sleep 1; done
-	@echo "3/3  Rodando seeds..."
-	cd scripts && npx tsx seed-clerk.ts
-	cd scripts && npx tsx seed-db.ts
+	@echo "3/4  Rodando migrations..."
+	cd backend_v2 && npm run migration:run
+	@echo "4/4  Rodando seeds..."
+	cd backend_v2 && npm run seed
 	@echo "\n✅  Setup completo! Rode 'make dev-api' e 'make dev-front' para iniciar."

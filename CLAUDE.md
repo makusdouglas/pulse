@@ -9,8 +9,7 @@ O app se chama **Pulse**. SaaS B2B que prediz churn de alunos em academias. Duas
 | Componente | Tecnologia |
 |---|---|
 | Banco de dados | Postgres + TimescaleDB |
-| Backend | FastAPI (Python) |
-| Task queue | Celery + Redis |
+| Backend | NestJS (TypeScript) |
 | WhatsApp | Evolution API (self-hosted) |
 | Frontend | Next.js (TypeScript) |
 | Auth | Clerk (Organizations = multi-tenant) |
@@ -21,83 +20,74 @@ O app se chama **Pulse**. SaaS B2B que prediz churn de alunos em academias. Duas
 
 ## Arquitetura
 
-- **Monorepo**: `backend/` (Python) + `frontend/` (Next.js) + `docker-compose.yml` na raiz
-- **Backend**: Clean Architecture flat (domain → use_cases → repositories → api)
+- **Monorepo**: `backend_v2/` (NestJS) + `frontend/` (Next.js) + `docker-compose.yml` na raiz
+- **Backend**: Clean Architecture (domain → data → infra → presentation)
 - **Multi-tenant**: Shared DB + RLS. `gym_id` em TODAS as tabelas. Clerk org_id = gym_id
 - **Banco**: TimescaleDB com hypertable em `checkins` (serie temporal)
 - **Core tables**: `gyms`, `members`, `checkins`, `payments`, `member_features`, `churn_scores`, `actions_log`
 - **Billing tables**: `plans`, `subscriptions`, `invoices`, `coupons`, `coupon_usage`, `promotions`
 - **Admin tables**: `admin_users`, `admin_sessions`
-- **Scoring**: Rule-based scoring (`backend/use_cases/calculate_score.py`) with tiers: critical (>=60), medium (>=30), low (>=10), safe (<10)
-- **Jobs**: Celery Beat roda scoring diario as 3h e retreino mensal no dia 1
-- **API**: FastAPI com endpoints `/at-risk` e `/score/{member_id}`
+- **Scoring**: Rule-based scoring with tiers: critical (>=60), medium (>=30), low (>=10), safe (<10)
+- **Jobs**: NestJS @Schedule — scoring diario as 3h e retreino mensal no dia 1
+- **API**: NestJS com Swagger em `/api-docs`
 - **Auth**: Clerk — JWT no backend, componentes prontos no frontend. Clerk Organizations = 1 org = 1 academia (org_id = gym_id)
 
 ### Estrutura de pastas
 ```
 pulse/
-├── backend/
-│   ├── domain/           # Entidades e regras de negocio puras (sem deps externas)
-│   │   ├── entities/     # Member, Gym, Checkin, Payment, ChurnScore, ChurnSignals
-│   │   └── exceptions.py
-│   ├── use_cases/        # Casos de uso (orquestram repositories)
-│   ├── repositories/     # Camada de acesso a dados
-│   │   ├── interfaces/   # ABCs (MemberRepo, CheckinRepo, ScoreRepo...)
-│   │   └── postgres/     # Implementacoes concretas com SQLAlchemy
-│   ├── api/              # FastAPI — controllers/adapters
-│   │   ├── routes/       # Rotas HTTP (finas — so chamam use_cases)
-│   │   ├── schemas/      # Pydantic request/response models
-│   │   ├── deps.py       # DI: get_db, get_current_gym_id, repos
-│   │   ├── middleware.py  # TenantMiddleware
-│   │   └── main.py
-│   ├── infra/            # Config, DB engine, Celery, tenant context
-│   │   ├── config.py     # pydantic-settings
-│   │   ├── database.py   # SQLAlchemy engine + SessionLocal
-│   │   ├── celery_app.py
-│   │   └── tenant.py     # contextvars para gym_id
-│   ├── tasks/            # Celery jobs (chamam use_cases)
-│   ├── migrations/       # SQL migrations sequenciais
-│   ├── models/           # Modelos ML serializados (.pkl)
-│   ├── tests/            # pytest
-│   ├── schema.sql        # DDL de referencia
+├── backend_v2/
+│   ├── src/
+│   │   ├── domain/           # Entidades e regras de negocio puras
+│   │   │   ├── entities/     # Member, Gym, Checkin, Payment, ChurnScore
+│   │   │   └── use-cases/    # Interfaces dos use cases
+│   │   ├── data/             # Implementacoes de use cases + protocols
+│   │   │   ├── protocols/    # Interfaces dos repositories
+│   │   │   └── use-cases-implementation/
+│   │   ├── infra/            # Config, DB, Auth, Jobs
+│   │   │   ├── config/       # env.ts + ConfigModule
+│   │   │   ├── database/     # TypeORM entities, repositories, seeds
+│   │   │   ├── auth/         # Clerk JWT guard
+│   │   │   ├── tenant/       # TenantService (contextvars)
+│   │   │   └── jobs/         # Scoring + Feature extraction crons
+│   │   └── presentation/     # Controllers + DTOs
+│   ├── .env                  # Variaveis de ambiente (gitignored)
+│   ├── .env.example          # Template
 │   ├── Dockerfile
-│   ├── requirements.txt
-│   └── pyproject.toml
+│   └── package.json
 ├── frontend/
 │   ├── src/              # Next.js app router, componentes, lib
+│   ├── .env.local        # Variaveis de ambiente (gitignored)
+│   ├── .env.example      # Template
 │   ├── Dockerfile
 │   ├── package.json
 │   └── tailwind.config.ts
-├── docker-compose.yml    # DB + Redis + API + Worker + Frontend
-├── .env.example
+├── docker-compose.yml    # DB + API + Frontend
 ├── Makefile
 ├── CLAUDE.md
 └── design.pen
 ```
 
 ### Regras de dependencia (Clean Architecture)
-- `domain/` → nao importa nada externo (puro Python)
-- `use_cases/` → importa `domain/` e `repositories/interfaces/`
-- `repositories/postgres/` → importa `domain/` e `repositories/interfaces/`
-- `api/` → importa `use_cases/` e `api/schemas/`
-- `infra/` → nao importa dominio
-- `tasks/` → importa `use_cases/`
+- `domain/` → nao importa nada externo (puro TypeScript)
+- `data/` → importa `domain/` e `data/protocols/`
+- `infra/database/` → importa `domain/` e `data/protocols/`
+- `presentation/` → importa `domain/use-cases/` e DTOs
+- `infra/jobs/` → importa `domain/use-cases/`
 
 ### Multi-tenant
 - `gym_id` em TODAS as tabelas (desnormalizado para evitar JOINs)
 - RLS (Row-Level Security) no Postgres: `USING (gym_id = current_setting('app.current_gym_id')::UUID)`
-- TenantMiddleware: extrai gym_id do JWT Clerk, seta em contextvars + session Postgres
+- TenantMiddleware: extrai gym_id do JWT Clerk, seta via TenantService
 - Repositories sempre filtram por gym_id (dupla seguranca: codigo + RLS)
-- Celery jobs propagam tenant context via `set_tenant()` antes de executar
 
 ## Fases do projeto
 
 ### Fase 1 — Sistema de regras (semanas 1-8)
-1. Ambiente local (Docker: TimescaleDB + Redis)
+1. Ambiente local (Docker: TimescaleDB)
 2. Importacao de CSV (alunos, checkins, pagamentos)
 3. Sistema de pontuacao por regras
-4. API FastAPI
-5. Job noturno Celery
+4. API NestJS
+5. Job cron de scoring
 
 ### Fase 2 — ML (semanas 9-16, apos gate)
 - Gate: 6+ meses de dados, 80+ cancelamentos, 2+ meses de actions_log, 2+ academias
@@ -113,9 +103,10 @@ pulse/
 - **Language**: All code in English (tables, columns, variables, functions, classes, routes). Only user-facing strings (churn reasons, UI labels) in PT-BR.
 - Date parsing: Brazilian format (dd/mm/yyyy) on CSV import, ISO format internally
 - UUIDs as primary keys on all tables
-- Docker Compose for local dev (TimescaleDB + Redis)
+- Docker Compose for local dev (TimescaleDB)
 - **Billing**: Stripe for SaaS subscriptions. Upgrade = immediate + proration. Downgrade = end of cycle.
 - **Admin**: Separate JWT auth (not Clerk). Roles: superadmin > finance > support.
+- **Env files**: `backend_v2/.env` para backend, `frontend/.env.local` para frontend. Sem .env na raiz.
 
 ## Design System e UI
 
@@ -185,10 +176,17 @@ pulse/
 docker-compose up -d
 
 # Dev leve (so infra no Docker, apps locais)
-docker-compose up db redis
-cd backend && uvicorn api.main:app --reload
-cd backend && celery -A tasks.celery_app worker --beat --loglevel=info
-cd frontend && npm run dev
+make dev-infra
+make dev-api
+make dev-front
+
+# Seeds
+make seed          # Roda todos (Clerk + DB + Admin stub)
+make seed-clerk    # So Clerk + sync gyms
+make seed-db       # So sync Clerk → gyms
+
+# Setup completo
+make setup         # infra + migrations + seeds
 ```
 
 ## Metricas de sucesso
