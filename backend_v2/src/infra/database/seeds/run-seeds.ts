@@ -6,13 +6,16 @@ import { ENV } from '../../config/env';
 import { SeedsModule } from './seeds.module';
 import { SeedRunner } from './seed.runner';
 import { GymEntity } from '../entities/gym.entity';
+import { MemberEntity } from '../entities/member.entity';
+import { CheckinEntity } from '../entities/checkin.entity';
+import { PaymentEntity } from '../entities/payment.entity';
 
 @Module({
   imports: [
     TypeOrmModule.forRoot({
       type: 'postgres',
       url: ENV.DATABASE_URL,
-      entities: [GymEntity],
+      entities: [GymEntity, MemberEntity, CheckinEntity, PaymentEntity],
       synchronize: false,
     }),
     SeedsModule,
