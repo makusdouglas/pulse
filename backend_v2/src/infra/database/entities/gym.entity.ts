@@ -17,13 +17,13 @@ export class GymEntity {
   @Column({ length: 100, unique: true })
   slug: string;
 
-  @Column({ length: 255, nullable: true })
+  @Column({ type: 'varchar', length: 255, nullable: true })
   email: string | null;
 
-  @Column({ length: 30, nullable: true })
+  @Column({ type: 'varchar', length: 30, nullable: true })
   phone: string | null;
 
-  @Column({ name: 'clerk_org_id', length: 255, unique: true, nullable: true })
+  @Column({ name: 'clerk_org_id', type: 'varchar', length: 255, unique: true, nullable: true })
   clerkOrgId: string | null;
 
   @Column({ length: 50, default: 'America/Sao_Paulo' })
