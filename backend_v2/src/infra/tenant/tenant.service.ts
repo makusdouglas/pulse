@@ -34,9 +34,7 @@ export class TenantService {
       );
 
       if (inserted.length > 0) {
-        this.logger.log(
-          `Auto-provisioned gym for clerk_org_id=${clerkOrgId}`,
-        );
+        this.logger.log(`Auto-provisioned gym for clerk_org_id=${clerkOrgId}`);
         return inserted[0].id;
       }
 

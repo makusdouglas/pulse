@@ -12,7 +12,10 @@ export class FeatureExtractionJob {
     private readonly featureRepo: FeatureRepository,
   ) {}
 
-  @Cron('30 2 * * *', { name: 'feature-extraction', timeZone: 'America/Sao_Paulo' })
+  @Cron('30 2 * * *', {
+    name: 'feature-extraction',
+    timeZone: 'America/Sao_Paulo',
+  })
   async handleCron(): Promise<void> {
     this.logger.log('Starting daily feature extraction for all gyms...');
     await this.execute();

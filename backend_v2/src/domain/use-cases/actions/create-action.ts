@@ -9,8 +9,5 @@ export interface CreateActionInput {
 }
 
 export abstract class CreateAction {
-  abstract execute(
-    gymId: string,
-    input: CreateActionInput,
-  ): Promise<Action>;
+  abstract execute(gymId: string, input: CreateActionInput): Promise<Action>;
 }

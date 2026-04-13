@@ -45,8 +45,16 @@ describe('ScoringJob', () => {
   };
 
   beforeEach(() => {
-    gymRepo = { findAllIds: jest.fn(), findById: jest.fn(), update: jest.fn() } as any;
-    featureRepo = { extractAll: jest.fn(), extractOne: jest.fn(), upsert: jest.fn() } as any;
+    gymRepo = {
+      findAllIds: jest.fn(),
+      findById: jest.fn(),
+      update: jest.fn(),
+    } as any;
+    featureRepo = {
+      extractAll: jest.fn(),
+      extractOne: jest.fn(),
+      upsert: jest.fn(),
+    } as any;
     scoreRepo = {
       upsert: jest.fn(),
       findByGymWithTier: jest.fn(),
@@ -115,7 +123,10 @@ describe('ScoringJob', () => {
       tier: Tier.SAFE,
     };
 
-    featureRepo.extractAll.mockResolvedValue([mockFeatures, { ...mockFeatures, memberId: 'm2' }]);
+    featureRepo.extractAll.mockResolvedValue([
+      mockFeatures,
+      { ...mockFeatures, memberId: 'm2' },
+    ]);
     calculateScore.execute
       .mockReturnValueOnce(mockScore)
       .mockReturnValueOnce(safeScore);

@@ -8,8 +8,8 @@ export function parseDate(value: string): Date | null {
 
   const patterns: Array<{ regex: RegExp; order: [number, number, number] }> = [
     { regex: /^(\d{2})\/(\d{2})\/(\d{4})$/, order: [2, 1, 0] }, // dd/mm/yyyy
-    { regex: /^(\d{4})-(\d{2})-(\d{2})$/, order: [0, 1, 2] },   // yyyy-mm-dd
-    { regex: /^(\d{2})-(\d{2})-(\d{4})$/, order: [2, 1, 0] },   // dd-mm-yyyy
+    { regex: /^(\d{4})-(\d{2})-(\d{2})$/, order: [0, 1, 2] }, // yyyy-mm-dd
+    { regex: /^(\d{2})-(\d{2})-(\d{4})$/, order: [2, 1, 0] }, // dd-mm-yyyy
   ];
 
   for (const { regex, order } of patterns) {

@@ -35,9 +35,7 @@ export function extractGymId(payload: Record<string, unknown>): string {
   }
 
   if (!orgId) {
-    throw new UnauthorizedException(
-      'User must belong to an organization',
-    );
+    throw new UnauthorizedException('User must belong to an organization');
   }
   return orgId;
 }

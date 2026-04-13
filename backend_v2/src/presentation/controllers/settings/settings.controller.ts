@@ -1,5 +1,11 @@
 import { Body, Controller, Get, Put, Req, UseGuards } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags, ApiPropertyOptional } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiResponse,
+  ApiTags,
+  ApiPropertyOptional,
+} from '@nestjs/swagger';
 import type { Request } from 'express';
 import { IsOptional, IsString } from 'class-validator';
 import { ClerkAuthGuard } from '../../../infra/auth/clerk-auth.guard';

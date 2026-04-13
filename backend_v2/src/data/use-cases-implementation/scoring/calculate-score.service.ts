@@ -1,6 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { CalculateScore } from '../../../domain/use-cases/scoring/calculate-score';
-import { MemberFeatures, ChurnScore, ChurnSignals } from '../../../domain/entities';
+import {
+  MemberFeatures,
+  ChurnScore,
+  ChurnSignals,
+} from '../../../domain/entities';
 import { Tier } from '../../../domain/enums';
 
 function classifyTier(score: number): Tier {
@@ -30,9 +34,7 @@ export class CalculateScoreService implements CalculateScore {
       if (features.daysWithoutCheckin >= 9999) {
         reasons.push('Nunca registrou um treino');
       } else {
-        reasons.push(
-          `Sem treinar ha ${features.daysWithoutCheckin} dias`,
-        );
+        reasons.push(`Sem treinar ha ${features.daysWithoutCheckin} dias`);
       }
     }
 
@@ -50,9 +52,7 @@ export class CalculateScoreService implements CalculateScore {
     // Rule 3 — inadimplencia (overdue payments in last 90 days → +20)
     if (features.overduePayments > 0) {
       signals.inadimplencia = 20;
-      reasons.push(
-        `${features.overduePayments} pagamento(s) em atraso`,
-      );
+      reasons.push(`${features.overduePayments} pagamento(s) em atraso`);
     }
 
     // Rule 4 — queda_duracao (avg duration dropped > 30% vs previous period → +15)
@@ -80,9 +80,7 @@ export class CalculateScoreService implements CalculateScore {
     if (features.latePaymentRatio > 0.3) {
       signals.historicoPagamento = 10;
       const pct = Math.round(features.latePaymentRatio * 100);
-      reasons.push(
-        `Historico de atrasos em ${pct}% dos pagamentos`,
-      );
+      reasons.push(`Historico de atrasos em ${pct}% dos pagamentos`);
     }
 
     // Rule 7 — aluno_novo (< 3 months enrolled → +5)

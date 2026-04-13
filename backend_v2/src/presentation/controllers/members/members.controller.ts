@@ -1,5 +1,10 @@
 import { Controller, Get, Param, Query, Req, UseGuards } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 import type { Request } from 'express';
 import { ClerkAuthGuard } from '../../../infra/auth/clerk-auth.guard';
 import { MemberRepository } from '../../../data/protocols/member-repository';
@@ -32,7 +37,12 @@ export class MembersController {
       search: query.search,
       status: query.status,
     });
-    return { members, total, page: query.page ?? 1, page_size: query.page_size ?? 20 };
+    return {
+      members,
+      total,
+      page: query.page ?? 1,
+      page_size: query.page_size ?? 20,
+    };
   }
 
   @Get(':memberId/score')
@@ -58,7 +68,12 @@ export class MembersController {
     });
 
     return {
-      member: { id: member.id, name: member.name, email: member.email, status: member.status },
+      member: {
+        id: member.id,
+        name: member.name,
+        email: member.email,
+        status: member.status,
+      },
       score: score.score,
       tier: score.tier,
       reasons: score.reasons,

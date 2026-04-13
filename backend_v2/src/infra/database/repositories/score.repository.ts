@@ -83,7 +83,12 @@ export class ScorePostgresRepository implements ScoreRepository {
        GROUP BY tier`,
       [gymId],
     );
-    const counts: TierCountsResult = { critical: 0, medium: 0, low: 0, safe: 0 };
+    const counts: TierCountsResult = {
+      critical: 0,
+      medium: 0,
+      low: 0,
+      safe: 0,
+    };
     for (const r of rows) {
       if (r.tier in counts) counts[r.tier as keyof TierCountsResult] = r.count;
     }
@@ -99,7 +104,10 @@ export class ScorePostgresRepository implements ScoreRepository {
     return Math.round(row[0]?.avg ?? 0);
   }
 
-  async getRecentScores(gymId: string, limit: number): Promise<ScoreWithMember[]> {
+  async getRecentScores(
+    gymId: string,
+    limit: number,
+  ): Promise<ScoreWithMember[]> {
     const rows = await this.ds.query(
       `SELECT cs.member_id, m.name AS member_name, m.email AS member_email,
               cs.score, cs.tier, cs.reasons, cs.computed_at
