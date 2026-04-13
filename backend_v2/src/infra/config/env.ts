@@ -14,6 +14,8 @@ export const ENV = {
   ADMIN_JWT_SECRET:
     process.env.ADMIN_JWT_SECRET ?? 'change-me-to-a-random-256-bit-secret',
 
+  ADMIN_SEED_PASSWORD: process.env.ADMIN_SEED_PASSWORD ?? '',
+
   APP_PORT: parseInt(process.env.APP_PORT ?? '8000', 10),
 
   get corsOriginsList(): string[] {

@@ -4,6 +4,7 @@ import { GymEntity } from '../entities/gym.entity';
 import { MemberEntity } from '../entities/member.entity';
 import { CheckinEntity } from '../entities/checkin.entity';
 import { PaymentEntity } from '../entities/payment.entity';
+import { AdminUserEntity } from '../entities/admin-user.entity';
 import { ClerkSeed } from './clerk.seed';
 import { GymSeed } from './gym.seed';
 import { AdminUserSeed } from './admin-user.seed';
@@ -17,6 +18,7 @@ import { SeedRunner } from './seed.runner';
       MemberEntity,
       CheckinEntity,
       PaymentEntity,
+      AdminUserEntity,
     ]),
   ],
   providers: [ClerkSeed, GymSeed, AdminUserSeed, MemberSeed, SeedRunner],

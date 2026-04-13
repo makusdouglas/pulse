@@ -6,3 +6,5 @@ export { PaymentRepository } from './payment-repository';
 export { ActionRepository } from './action-repository';
 export { NotificationRepository } from './notification-repository';
 export { ImportRepository } from './import-repository';
+export { AdminUserRepository } from './admin-user-repository';
+export { AdminSessionRepository } from './admin-session-repository';

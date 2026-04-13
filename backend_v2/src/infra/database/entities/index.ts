@@ -6,3 +6,5 @@ export { MemberFeaturesEntity } from './member-features.entity';
 export { ChurnScoreEntity } from './churn-score.entity';
 export { ActionEntity } from './action.entity';
 export { NotificationEntity } from './notification.entity';
+export { AdminUserEntity } from './admin-user.entity';
+export { AdminSessionEntity } from './admin-session.entity';

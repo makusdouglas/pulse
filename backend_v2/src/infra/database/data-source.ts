@@ -8,6 +8,8 @@ import { MemberFeaturesEntity } from './entities/member-features.entity';
 import { ChurnScoreEntity } from './entities/churn-score.entity';
 import { ActionEntity } from './entities/action.entity';
 import { NotificationEntity } from './entities/notification.entity';
+import { AdminUserEntity } from './entities/admin-user.entity';
+import { AdminSessionEntity } from './entities/admin-session.entity';
 
 export default new DataSource({
   type: 'postgres',
@@ -21,6 +23,8 @@ export default new DataSource({
     ChurnScoreEntity,
     ActionEntity,
     NotificationEntity,
+    AdminUserEntity,
+    AdminSessionEntity,
   ],
   migrations: ['src/infra/database/migrations/*.ts'],
   synchronize: false,
