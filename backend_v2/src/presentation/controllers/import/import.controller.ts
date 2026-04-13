@@ -10,10 +10,19 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { ApiBearerAuth, ApiConsumes, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiConsumes,
+  ApiOperation,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 import type { Request, Response } from 'express';
 import { ClerkAuthGuard } from '../../../infra/auth/clerk-auth.guard';
-import { ParseCsv, EntityType } from '../../../domain/use-cases/import/parse-csv';
+import {
+  ParseCsv,
+  EntityType,
+} from '../../../domain/use-cases/import/parse-csv';
 
 const TEMPLATES: Record<EntityType, { header: string; example: string }> = {
   members: {

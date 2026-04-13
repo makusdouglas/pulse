@@ -25,9 +25,15 @@ export class FeaturePostgresRepository implements FeatureRepository {
          overdue_payments = EXCLUDED.overdue_payments,
          months_enrolled = EXCLUDED.months_enrolled`,
       [
-        params.memberId, params.gymId, params.daysWithoutCheckin,
-        params.freqLast30d, params.freqPrev30d, params.freqTrend,
-        params.avgDurationMin, params.overduePayments, params.monthsEnrolled,
+        params.memberId,
+        params.gymId,
+        params.daysWithoutCheckin,
+        params.freqLast30d,
+        params.freqPrev30d,
+        params.freqTrend,
+        params.avgDurationMin,
+        params.overduePayments,
+        params.monthsEnrolled,
       ],
     );
   }
@@ -84,7 +90,10 @@ export class FeaturePostgresRepository implements FeatureRepository {
     }));
   }
 
-  async extractOne(gymId: string, memberId: string): Promise<MemberFeatures | null> {
+  async extractOne(
+    gymId: string,
+    memberId: string,
+  ): Promise<MemberFeatures | null> {
     const rows = await this.ds.query(
       `WITH checkin_agg AS (
         SELECT c.member_id,

@@ -2,9 +2,7 @@ import { CalculateScoreService } from './calculate-score.service';
 import { MemberFeatures } from '../../../domain/entities';
 import { Tier } from '../../../domain/enums';
 
-function makeFeatures(
-  overrides: Partial<MemberFeatures> = {},
-): MemberFeatures {
+function makeFeatures(overrides: Partial<MemberFeatures> = {}): MemberFeatures {
   return {
     memberId: 'member-1',
     gymId: 'gym-1',
@@ -38,24 +36,18 @@ describe('CalculateScoreService', () => {
 
   // Rule 1 — dias_sem_treino (+40)
   it('should add +40 for > 14 days without checkin', () => {
-    const result = service.execute(
-      makeFeatures({ daysWithoutCheckin: 20 }),
-    );
+    const result = service.execute(makeFeatures({ daysWithoutCheckin: 20 }));
     expect(result.signals.diasSemTreino).toBe(40);
     expect(result.reasons).toContain('Sem treinar ha 20 dias');
   });
 
   it('should not trigger rule 1 for exactly 14 days', () => {
-    const result = service.execute(
-      makeFeatures({ daysWithoutCheckin: 14 }),
-    );
+    const result = service.execute(makeFeatures({ daysWithoutCheckin: 14 }));
     expect(result.signals.diasSemTreino).toBe(0);
   });
 
   it('should show "Nunca registrou" for 9999+ days', () => {
-    const result = service.execute(
-      makeFeatures({ daysWithoutCheckin: 9999 }),
-    );
+    const result = service.execute(makeFeatures({ daysWithoutCheckin: 9999 }));
     expect(result.signals.diasSemTreino).toBe(40);
     expect(result.reasons).toContain('Nunca registrou um treino');
   });
@@ -84,17 +76,13 @@ describe('CalculateScoreService', () => {
 
   // Rule 3 — inadimplencia (+20)
   it('should add +20 for overdue payments', () => {
-    const result = service.execute(
-      makeFeatures({ overduePayments: 2 }),
-    );
+    const result = service.execute(makeFeatures({ overduePayments: 2 }));
     expect(result.signals.inadimplencia).toBe(20);
     expect(result.reasons).toContain('2 pagamento(s) em atraso');
   });
 
   it('should not trigger rule 3 for 0 overdue', () => {
-    const result = service.execute(
-      makeFeatures({ overduePayments: 0 }),
-    );
+    const result = service.execute(makeFeatures({ overduePayments: 0 }));
     expect(result.signals.inadimplencia).toBe(0);
   });
 
@@ -122,24 +110,18 @@ describe('CalculateScoreService', () => {
 
   // Rule 5 — baixa_frequencia (+10)
   it('should add +10 for < 4 checkins in last 30d', () => {
-    const result = service.execute(
-      makeFeatures({ freqLast30d: 3 }),
-    );
+    const result = service.execute(makeFeatures({ freqLast30d: 3 }));
     expect(result.signals.baixaFrequencia).toBe(10);
   });
 
   it('should not trigger rule 5 for exactly 4 checkins', () => {
-    const result = service.execute(
-      makeFeatures({ freqLast30d: 4 }),
-    );
+    const result = service.execute(makeFeatures({ freqLast30d: 4 }));
     expect(result.signals.baixaFrequencia).toBe(0);
   });
 
   // Rule 6 — historico_pagamento (+10)
   it('should add +10 for > 30% late payment ratio', () => {
-    const result = service.execute(
-      makeFeatures({ latePaymentRatio: 0.5 }),
-    );
+    const result = service.execute(makeFeatures({ latePaymentRatio: 0.5 }));
     expect(result.signals.historicoPagamento).toBe(10);
     expect(result.reasons).toContain(
       'Historico de atrasos em 50% dos pagamentos',
@@ -147,27 +129,19 @@ describe('CalculateScoreService', () => {
   });
 
   it('should not trigger rule 6 for exactly 30%', () => {
-    const result = service.execute(
-      makeFeatures({ latePaymentRatio: 0.3 }),
-    );
+    const result = service.execute(makeFeatures({ latePaymentRatio: 0.3 }));
     expect(result.signals.historicoPagamento).toBe(0);
   });
 
   // Rule 7 — aluno_novo (+5)
   it('should add +5 for < 3 months enrolled', () => {
-    const result = service.execute(
-      makeFeatures({ monthsEnrolled: 1 }),
-    );
+    const result = service.execute(makeFeatures({ monthsEnrolled: 1 }));
     expect(result.signals.alunoNovo).toBe(5);
-    expect(result.reasons).toContain(
-      'Aluno novo (1 mes(es) de matricula)',
-    );
+    expect(result.reasons).toContain('Aluno novo (1 mes(es) de matricula)');
   });
 
   it('should not trigger rule 7 for exactly 3 months', () => {
-    const result = service.execute(
-      makeFeatures({ monthsEnrolled: 3 }),
-    );
+    const result = service.execute(makeFeatures({ monthsEnrolled: 3 }));
     expect(result.signals.alunoNovo).toBe(0);
   });
 
@@ -214,9 +188,7 @@ describe('CalculateScoreService', () => {
 
   it('should classify tier safe for score 5', () => {
     // Rule 7(5) only
-    const result = service.execute(
-      makeFeatures({ monthsEnrolled: 2 }),
-    );
+    const result = service.execute(makeFeatures({ monthsEnrolled: 2 }));
     expect(result.score).toBe(5);
     expect(result.tier).toBe(Tier.SAFE);
   });

@@ -1,5 +1,11 @@
 import { Controller, Get, Query, Req, UseGuards } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags, ApiPropertyOptional } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiResponse,
+  ApiTags,
+  ApiPropertyOptional,
+} from '@nestjs/swagger';
 import type { Request } from 'express';
 import { IsEnum, IsOptional, IsUUID } from 'class-validator';
 import { ClerkAuthGuard } from '../../../infra/auth/clerk-auth.guard';

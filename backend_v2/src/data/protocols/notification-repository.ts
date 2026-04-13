@@ -5,7 +5,11 @@ export abstract class NotificationRepository {
     gymId: string,
     page: number,
     pageSize: number,
-  ): Promise<{ notifications: Notification[]; total: number; unreadCount: number }>;
+  ): Promise<{
+    notifications: Notification[];
+    total: number;
+    unreadCount: number;
+  }>;
   abstract markRead(gymId: string, notificationId: string): Promise<void>;
   abstract markAllRead(gymId: string): Promise<void>;
 }

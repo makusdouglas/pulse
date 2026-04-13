@@ -36,5 +36,8 @@ export abstract class ScoreRepository {
   ): Promise<{ scores: ScoreWithMember[]; total: number }>;
   abstract getTierCounts(gymId: string): Promise<TierCountsResult>;
   abstract getAvgScore(gymId: string): Promise<number>;
-  abstract getRecentScores(gymId: string, limit: number): Promise<ScoreWithMember[]>;
+  abstract getRecentScores(
+    gymId: string,
+    limit: number,
+  ): Promise<ScoreWithMember[]>;
 }

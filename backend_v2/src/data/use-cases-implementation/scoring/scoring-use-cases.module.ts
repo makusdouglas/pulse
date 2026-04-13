@@ -3,9 +3,7 @@ import { CalculateScore } from '../../../domain/use-cases/scoring/calculate-scor
 import { CalculateScoreService } from './calculate-score.service';
 
 @Module({
-  providers: [
-    { provide: CalculateScore, useClass: CalculateScoreService },
-  ],
+  providers: [{ provide: CalculateScore, useClass: CalculateScoreService }],
   exports: [CalculateScore],
 })
 export class ScoringUseCasesModule {}

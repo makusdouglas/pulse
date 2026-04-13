@@ -61,9 +61,7 @@ export class ScoringJob {
         perGym[gymId] = allFeatures.length;
         totalScored += allFeatures.length;
 
-        this.logger.log(
-          `Scored ${allFeatures.length} members in gym ${gymId}`,
-        );
+        this.logger.log(`Scored ${allFeatures.length} members in gym ${gymId}`);
       } catch (error) {
         this.logger.error(
           `Scoring failed for gym ${gymId}`,
