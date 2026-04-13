@@ -3,6 +3,7 @@ import { ISeed, SeedResult } from './seed.interface';
 import { ClerkSeed } from './clerk.seed';
 import { GymSeed } from './gym.seed';
 import { AdminUserSeed } from './admin-user.seed';
+import { MemberSeed } from './member.seed';
 
 @Injectable()
 export class SeedRunner {
@@ -14,10 +15,14 @@ export class SeedRunner {
     private readonly clerkSeed: ClerkSeed,
     private readonly gymSeed: GymSeed,
     private readonly adminUserSeed: AdminUserSeed,
+    private readonly memberSeed: MemberSeed,
   ) {
-    this.seeds = [this.clerkSeed, this.gymSeed, this.adminUserSeed].sort(
-      (a, b) => a.order - b.order,
-    );
+    this.seeds = [
+      this.clerkSeed,
+      this.gymSeed,
+      this.adminUserSeed,
+      this.memberSeed,
+    ].sort((a, b) => a.order - b.order);
   }
 
   async execute(only?: string[]): Promise<void> {
