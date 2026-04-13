@@ -40,7 +40,7 @@ export class ActionEntity {
   @Column({ name: 'sent_at', type: 'timestamptz', default: () => 'now()' })
   sentAt: Date;
 
-  @Column({ length: 30, nullable: true })
+  @Column({ type: 'varchar', length: 30, nullable: true })
   result: string | null;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
