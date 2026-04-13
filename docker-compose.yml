@@ -22,11 +22,9 @@ services:
     ports:
       - "8000:8000"
     env_file:
-      - .env.shared
-      - .env.backend
+      - ./backend_v2/.env
     environment:
       DATABASE_URL: postgresql://churn:churn123@db:5432/churndb
-      APP_PORT: "8000"
     depends_on:
       db:
         condition: service_healthy
@@ -42,7 +40,7 @@ services:
       - ./frontend:/app
       - /app/node_modules
     env_file:
-      - ./.env.frontend
+      - ./frontend/.env.local
     environment:
       WATCHPACK_POLLING: "true"
       CHOKIDAR_USEPOLLING: "true"

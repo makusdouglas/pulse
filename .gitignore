@@ -1,27 +1,9 @@
-# Python
-__pycache__/
-*.py[cod]
-*$py.class
-*.egg-info/
-dist/
-build/
-*.egg
-.venv/
-venv/
-env/
-
-# ML models
-backend/models/*.pkl
-backend/models/*.json
-!backend/models/.gitkeep
-
 # Environment
 .env
 .env.local
 .env.production
-.env.backend
-.env.frontend
-.env.shared
+backend_v2/.env
+frontend/.env.local
 
 # Node
 node_modules/
@@ -42,21 +24,15 @@ Thumbs.db
 # Docker
 pgdata/
 
-# Tests
-.pytest_cache/
-htmlcov/
-.coverage
-coverage.xml
-
-# Celery
-backend/celerybeat-schedule
-
 # Seeds with real data
-scripts/seeds-admin.json
-scripts/seeds-organizations.json
+backend_v2/src/infra/database/seeds/data/admin-users.json
+backend_v2/src/infra/database/seeds/data/organizations.json
 
 # TypeScript build cache
 frontend/tsconfig.tsbuildinfo
 
 # Logs
 *.log
+
+# Test coverage
+coverage/
