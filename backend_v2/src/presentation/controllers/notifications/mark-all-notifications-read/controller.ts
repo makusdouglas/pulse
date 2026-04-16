@@ -1,8 +1,8 @@
-import { Controller, HttpCode, Put, Req, UseGuards } from '@nestjs/common';
+import { Controller, HttpCode, Put, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import type { Request } from 'express';
 import { ClerkAuthGuard } from '../../../../infra/auth/clerk-auth.guard';
 import { MarkAllNotificationsRead } from '../../../../domain/use-cases/notifications/mark-all-notifications-read';
+import { LoggedUser } from '../../../decorators';
 import { MarkAllNotificationsReadSwagger } from './decorators';
 
 @ApiTags('Notifications')
@@ -17,8 +17,7 @@ export class MarkAllNotificationsReadController {
   @Put('read-all')
   @HttpCode(204)
   @MarkAllNotificationsReadSwagger()
-  async handle(@Req() req: Request) {
-    const gymId = (req as any).gymUuid;
+  async handle(@LoggedUser() gymId: string) {
     await this.markAllNotificationsRead.execute(gymId);
   }
 }

@@ -35,7 +35,7 @@ describe('GetDashboardStatsService', () => {
     scoreRepo.getTierCounts.mockResolvedValue({ critical: 5, medium: 10, low: 20, safe: 45 });
     scoreRepo.getAvgScore.mockResolvedValue(35.5);
     scoreRepo.getRecentScores.mockResolvedValue([
-      { memberId: 'm1', memberName: 'John', score: 75, tier: Tier.CRITICAL },
+      { memberId: 'm1', memberName: 'John', memberEmail: 'john@test.com', score: 75, tier: Tier.CRITICAL, reasons: ['low_frequency'], computedAt: new Date() },
     ]);
 
     const result = await service.execute('gym-1');

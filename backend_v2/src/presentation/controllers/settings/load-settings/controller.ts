@@ -1,8 +1,8 @@
-import { Controller, Get, Req, UseGuards } from '@nestjs/common';
+import { Controller, Get, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import type { Request } from 'express';
 import { ClerkAuthGuard } from '../../../../infra/auth/clerk-auth.guard';
 import { GetGymSettings } from '../../../../domain/use-cases/settings/get-gym-settings';
+import { LoggedUser } from '../../../decorators';
 import { LoadSettingsSwagger } from './decorators';
 
 @ApiTags('Settings')
@@ -14,8 +14,7 @@ export class LoadSettingsController {
 
   @Get('settings')
   @LoadSettingsSwagger()
-  async handle(@Req() req: Request) {
-    const gymId = (req as any).gymUuid;
+  async handle(@LoggedUser() gymId: string) {
     return this.getGymSettings.execute(gymId);
   }
 }

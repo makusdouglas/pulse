@@ -1,8 +1,8 @@
-import { Controller, Get, Req, UseGuards } from '@nestjs/common';
+import { Controller, Get, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import type { Request } from 'express';
 import { ClerkAuthGuard } from '../../../../infra/auth/clerk-auth.guard';
 import { GetDashboardStats } from '../../../../domain/use-cases/dashboard/get-dashboard-stats';
+import { LoggedUser } from '../../../decorators';
 import { LoadStatsSwagger } from './decorators';
 
 @ApiTags('Dashboard')
@@ -14,8 +14,7 @@ export class LoadStatsController {
 
   @Get('stats')
   @LoadStatsSwagger()
-  async handle(@Req() req: Request) {
-    const gymId = (req as any).gymUuid;
+  async handle(@LoggedUser() gymId: string) {
     const stats = await this.getDashboardStats.execute(gymId);
     return {
       total_members: stats.totalMembers,

@@ -1,8 +1,8 @@
-import { Controller, Get, Param, Req, UseGuards } from '@nestjs/common';
+import { Controller, Get, Param, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import type { Request } from 'express';
 import { ClerkAuthGuard } from '../../../../infra/auth/clerk-auth.guard';
 import { GetMemberScore } from '../../../../domain/use-cases/members/get-member-score';
+import { LoggedUser } from '../../../decorators';
 import { LoadMemberScoreSwagger } from './decorators';
 
 @ApiTags('Members')
@@ -14,8 +14,7 @@ export class LoadMemberScoreController {
 
   @Get(':memberId/score')
   @LoadMemberScoreSwagger()
-  async handle(@Req() req: Request, @Param('memberId') memberId: string) {
-    const gymId = (req as any).gymUuid;
+  async handle(@LoggedUser() gymId: string, @Param('memberId') memberId: string) {
     const score = await this.getMemberScore.execute(gymId, memberId);
     if (!score) return { error: 'Member not found or no features available' };
     return {

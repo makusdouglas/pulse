@@ -1,8 +1,8 @@
-import { Controller, Get, Query, Req, UseGuards } from '@nestjs/common';
+import { Controller, Get, Query, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import type { Request } from 'express';
 import { ClerkAuthGuard } from '../../../../infra/auth/clerk-auth.guard';
 import { ListActions } from '../../../../domain/use-cases/actions/list-actions';
+import { LoggedUser } from '../../../decorators';
 import { LoadActionsSwagger } from './decorators';
 import { LoadActionsRequest } from './request';
 
@@ -15,8 +15,7 @@ export class LoadActionsController {
 
   @Get()
   @LoadActionsSwagger()
-  async handle(@Req() req: Request, @Query() query: LoadActionsRequest) {
-    const gymId = (req as any).gymUuid;
+  async handle(@LoggedUser() gymId: string, @Query() query: LoadActionsRequest) {
     const result = await this.listActions.execute(gymId, {
       memberId: query.member_id,
       page: query.page,

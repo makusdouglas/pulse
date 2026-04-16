@@ -1,8 +1,8 @@
-import { Body, Controller, Post, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Post, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import type { Request } from 'express';
 import { ClerkAuthGuard } from '../../../../infra/auth/clerk-auth.guard';
 import { CreateAction } from '../../../../domain/use-cases/actions/create-action';
+import { LoggedUser } from '../../../decorators';
 import { CreateActionSwagger } from './decorators';
 import { CreateActionRequest } from './request';
 
@@ -15,8 +15,7 @@ export class CreateActionController {
 
   @Post()
   @CreateActionSwagger()
-  async handle(@Req() req: Request, @Body() body: CreateActionRequest) {
-    const gymId = (req as any).gymUuid;
+  async handle(@LoggedUser() gymId: string, @Body() body: CreateActionRequest) {
     const action = await this.createAction.execute(gymId, {
       memberId: body.member_id,
       actionType: body.action_type,

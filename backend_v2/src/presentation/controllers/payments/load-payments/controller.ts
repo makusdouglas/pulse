@@ -1,8 +1,8 @@
-import { Controller, Get, Query, Req, UseGuards } from '@nestjs/common';
+import { Controller, Get, Query, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import type { Request } from 'express';
 import { ClerkAuthGuard } from '../../../../infra/auth/clerk-auth.guard';
 import { ListPayments } from '../../../../domain/use-cases/payments/list-payments';
+import { LoggedUser } from '../../../decorators';
 import { LoadPaymentsSwagger } from './decorators';
 import { LoadPaymentsRequest } from './request';
 
@@ -15,8 +15,7 @@ export class LoadPaymentsController {
 
   @Get()
   @LoadPaymentsSwagger()
-  async handle(@Req() req: Request, @Query() query: LoadPaymentsRequest) {
-    const gymId = (req as any).gymUuid;
+  async handle(@LoggedUser() gymId: string, @Query() query: LoadPaymentsRequest) {
     const result = await this.listPayments.execute(gymId, {
       memberId: query.member_id,
       status: query.status,

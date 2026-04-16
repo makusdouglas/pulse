@@ -1,8 +1,8 @@
-import { Controller, Get, Query, Req, UseGuards } from '@nestjs/common';
+import { Controller, Get, Query, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import type { Request } from 'express';
 import { ClerkAuthGuard } from '../../../../infra/auth/clerk-auth.guard';
 import { ListAtRisk } from '../../../../domain/use-cases/risk/list-at-risk';
+import { LoggedUser } from '../../../decorators';
 import { LoadAtRiskSwagger } from './decorators';
 import { LoadAtRiskRequest } from './request';
 
@@ -15,8 +15,7 @@ export class LoadAtRiskController {
 
   @Get()
   @LoadAtRiskSwagger()
-  async handle(@Req() req: Request, @Query() query: LoadAtRiskRequest) {
-    const gymId = (req as any).gymUuid;
+  async handle(@LoggedUser() gymId: string, @Query() query: LoadAtRiskRequest) {
     const result = await this.listAtRisk.execute(gymId, {
       tier: query.tier,
       page: query.page,

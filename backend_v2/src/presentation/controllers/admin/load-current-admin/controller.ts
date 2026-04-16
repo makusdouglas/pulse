@@ -1,8 +1,9 @@
-import { Controller, Get, Req, UseGuards } from '@nestjs/common';
+import { Controller, Get, UseGuards } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
-import type { Request } from 'express';
 import { AdminAuthGuard } from '../../../../infra/auth/admin-auth.guard';
 import { GetAdminMe } from '../../../../domain/use-cases/admin-auth/get-admin-me';
+import { LoggedAdmin } from '../../../decorators';
+import type { AdminUserPayload } from '../../../decorators';
 import { LoadCurrentAdminSwagger } from './decorators';
 
 @ApiTags('Admin Auth')
@@ -13,8 +14,7 @@ export class LoadCurrentAdminController {
   @Get('me')
   @UseGuards(AdminAuthGuard)
   @LoadCurrentAdminSwagger()
-  async handle(@Req() req: Request) {
-    const adminUser = (req as any).adminUser;
-    return this.getAdminMe.execute(adminUser.id);
+  async handle(@LoggedAdmin() admin: AdminUserPayload) {
+    return this.getAdminMe.execute(admin.id);
   }
 }

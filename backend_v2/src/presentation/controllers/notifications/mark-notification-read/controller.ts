@@ -3,13 +3,12 @@ import {
   HttpCode,
   Param,
   Put,
-  Req,
   UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import type { Request } from 'express';
 import { ClerkAuthGuard } from '../../../../infra/auth/clerk-auth.guard';
 import { MarkNotificationRead } from '../../../../domain/use-cases/notifications/mark-notification-read';
+import { LoggedUser } from '../../../decorators';
 import { MarkNotificationReadSwagger } from './decorators';
 
 @ApiTags('Notifications')
@@ -23,10 +22,9 @@ export class MarkNotificationReadController {
   @HttpCode(204)
   @MarkNotificationReadSwagger()
   async handle(
-    @Req() req: Request,
+    @LoggedUser() gymId: string,
     @Param('notificationId') notificationId: string,
   ) {
-    const gymId = (req as any).gymUuid;
     await this.markNotificationRead.execute(gymId, notificationId);
   }
 }

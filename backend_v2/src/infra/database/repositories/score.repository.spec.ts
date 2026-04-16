@@ -1,4 +1,5 @@
 import { ScorePostgresRepository } from './score.repository';
+import { Tier } from '../../../domain/enums';
 
 function makeRepo() {
   const ds = { query: jest.fn() } as any;
@@ -9,7 +10,7 @@ describe('ScorePostgresRepository', () => {
   it('upsert should call ds.query with correct params', async () => {
     const { ds, service } = makeRepo();
     ds.query.mockResolvedValue(undefined);
-    await service.upsert({ memberId: 'm1', gymId: 'gym-1', score: 70, tier: 'critical', reasons: ['r1'], origin: 'rules' });
+    await service.upsert({ memberId: 'm1', gymId: 'gym-1', score: 70, tier: Tier.CRITICAL, reasons: ['r1'], origin: 'rules' });
     expect(ds.query).toHaveBeenCalledWith(expect.stringContaining('INSERT INTO churn_scores'), expect.arrayContaining(['m1', 'gym-1', 70]));
   });
 

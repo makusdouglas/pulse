@@ -1,8 +1,8 @@
-import { Controller, Get, Query, Req, UseGuards } from '@nestjs/common';
+import { Controller, Get, Query, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import type { Request } from 'express';
 import { ClerkAuthGuard } from '../../../../infra/auth/clerk-auth.guard';
 import { ListNotifications } from '../../../../domain/use-cases/notifications/list-notifications';
+import { LoggedUser } from '../../../decorators';
 import { LoadNotificationsSwagger } from './decorators';
 import { PaginationQuery } from '../../../../shared/pagination.dto';
 
@@ -15,8 +15,7 @@ export class LoadNotificationsController {
 
   @Get()
   @LoadNotificationsSwagger()
-  async handle(@Req() req: Request, @Query() query: PaginationQuery) {
-    const gymId = (req as any).gymUuid;
+  async handle(@LoggedUser() gymId: string, @Query() query: PaginationQuery) {
     const result = await this.listNotifications.execute(gymId, {
       page: query.page,
       pageSize: query.page_size,
